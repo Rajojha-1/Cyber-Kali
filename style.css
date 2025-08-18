@@ -84,4 +84,27 @@ body{
     transition: all ease-out 0.1s;
     cursor: pointer;
 }
+.spotlight_element{
+    width: 100vw;
+    box-sizing: border-box;
+    height:800px;
+    position: absolute;
+    top: 0%;
+    z-index: 10;
+}
+.spotlight_mask {
+    --mask-x: 50%;
+    --mask-y: 50%;
+    --mask-size: 150px;
+    mask-image: radial-gradient(circle var(--mask-size) at var(--mask-x) var(--mask-y), rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+    -webkit-mask-image: radial-gradient(circle var(--mask-size) at var(--mask-x) var(--mask-y), rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+    background-color:black;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 800px;
+    z-index: 12;
+    pointer-events: none;
+}
 
