@@ -11,6 +11,7 @@ body{
     height: 800px;
     justify-content: center;
     display: flex;
+    z-index: 5;
     align-items: center;
     background-color: rgba(0, 0, 0, 0);
     pointer-events: none; /* Clicks pass through to elements behind */
@@ -47,8 +48,9 @@ body{
     left: 0;
     backdrop-filter: blur(3px); /* Apply blur */
     -webkit-backdrop-filter: blur(3px); /* Safari support */    pointer-events: none;
-    background-color: rgba(0, 0, 0, 0.067);
+    background-color: rgba(0, 0, 0, 0.408);
 }
+
 .navbar{
     position: fixed;
     top: 0;
