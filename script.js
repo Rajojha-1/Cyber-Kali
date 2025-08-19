@@ -1,10 +1,13 @@
-const mask = document.querySelector(".spotlight_mask"); // correct class name
 
-document.addEventListener("mousemove", (e) => {
-  const rect = mask.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const spotlight = document.querySelector(".spotlight_chupao");
 
-  mask.style.setProperty("--mask-x", `${x}px`);
-  mask.style.setProperty("--mask-y", `${y}px`);
-});
+  document.addEventListener("mousemove", (e) => {
+    // Get mouse position relative to viewport
+    const x = e.clientX + "px";
+    const y = e.clientY + "px";
+
+    // Update CSS variables
+    spotlight.style.setProperty("--mask-x", x);
+    spotlight.style.setProperty("--mask-y", y);
+  });
+
