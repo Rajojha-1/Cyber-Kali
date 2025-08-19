@@ -1,13 +1,13 @@
 
-  const spotlight = document.querySelector(".spotlight_chupao");
+  const spotlightOverlay = document.querySelector('.spotlight_chupao');
+  const spotlightSection = document.querySelector('.spotlight');
 
-  document.addEventListener("mousemove", (e) => {
-    // Get mouse position relative to viewport
-    const x = e.clientX + "px";
-    const y = e.clientY + "px";
-
-    // Update CSS variables
-    spotlight.style.setProperty("--mask-x", x);
-    spotlight.style.setProperty("--mask-y", y);
+  document.addEventListener('mousemove', (event) => {
+    if (!spotlightOverlay || !spotlightSection) return;
+    const rect = spotlightSection.getBoundingClientRect();
+    const relativeX = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
+    const relativeY = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+    spotlightOverlay.style.setProperty('--mask-x', relativeX + 'px');
+    spotlightOverlay.style.setProperty('--mask-y', relativeY + 'px');
   });
 

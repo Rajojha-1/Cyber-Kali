@@ -9,9 +9,9 @@ body{
 }
 .spotlight{
     position: relative;
-}
-.spotlight>*{
-position: absolute;
+    width: 100vw;
+    min-height: 100vh;
+    z-index: 1;
 }
 .kali_svg{
     z-index: 100;
@@ -40,9 +40,9 @@ position: absolute;
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
 
   /* Fake the spotlight with a radial gradient instead of mask */
   background: radial-gradient(
@@ -57,10 +57,14 @@ position: absolute;
 
 .kali_svg_div{
   width: 100vw;
-  height: 800px;
-  position:absolute;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+  z-index: 3;
 }
 
 .navbar{
@@ -104,6 +108,20 @@ a:focus {
   outline: none; /* optional: remove focus outline */
 }
 .about_us{
-    position: absolute;
-    
+    position: relative;
+    z-index: 0;
+}
+
+/* Position spotlight svg assets */
+.spotlight-svg-top{
+  display: block;
+  position: relative;
+  top: 0;
+  left: 120px;
+}
+.spotlight-svg-bottom{
+  display: block;
+  position: relative;
+  top: 0;
+  left: 120px;
 }
