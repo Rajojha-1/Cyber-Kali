@@ -28,16 +28,17 @@ def init_db():
 
 app = Flask(
     __name__,
-    static_url_path='/',            # serve /style.css, /script.js as-is
+    static_url_path='/', 
     static_folder='static',
     template_folder='templates',
 )
 
-# Secret key for sessions
+
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'replace-this-in-production')
 
 
-# Serve assets directory at /assets/* so existing template links keep working
+# Serve assets directory at 
+
 @app.route('/assets/<path:filename>')
 def serve_assets(filename: str):
     assets_path = os.path.join(os.path.dirname(__file__), 'assets')
@@ -54,7 +55,7 @@ def require_admin():
     return None
 
 
-# Simple admin credential (stored securely via hash in code for now)
+# Simple admin credential
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
 ADMIN_PASSWORD_HASH = os.environ.get(
     'ADMIN_PASSWORD_HASH',
