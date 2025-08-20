@@ -3,9 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>{{ post.title if post else 'Blog' }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-    
+<body class="bg-black text-white">
+    <header>
+      <nav class="navbar">
+        <div class="right_navbar text-white">
+        <img src="/assets/Void Society logo.svg" alt="" class="logo_png"/>
+          <a href="/" class="contact text-white">Contact us</a>
+          <a href="/index.html#blogs" class="contact text-white">Blogs</a>
+        </div>
+        <div class="logo"></div>
+        <div class="elements_navbar">
+          <a href="/index.html" class="home no-underline">Home</a>
+          <a href="/" class="resources">Resources</a>
+          <a href="/" class="about">About</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-10">
+      {% if post %}
+      <article class="prose prose-invert max-w-none">
+        <h1 class="text-4xl font-semibold mb-2">{{ post.title }}</h1>
+        <p class="text-gray-400 mb-8">{{ post.date }}</p>
+        <div class="text-gray-200 whitespace-pre-wrap leading-relaxed">{{ post.content }}</div>
+      </article>
+      {% else %}
+        <div class="text-gray-400">Post not found.</div>
+      {% endif %}
+    </main>
+
+    <script src="/script.js"></script>
 </body>
 </html>

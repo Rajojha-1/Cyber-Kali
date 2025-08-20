@@ -1,0 +1,214 @@
+from flask import Flask, render_template, request, redirect, url_for, session, abort, send_from_directory, flash
+import os
+import sqlite3
+from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
+def get_db_connection():
+    connection = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'blog.db'))
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def init_db():
+    with get_db_connection() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                content TEXT,
+                date TEXT
+            )
+            """
+        )
+        conn.commit()
+
+
+app = Flask(
+    __name__,
+    static_url_path='/',            # serve /style.css, /script.js as-is
+    static_folder='static',
+    template_folder='templates',
+)
+
+# Secret key for sessions
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'replace-this-in-production')
+
+
+# Serve assets directory at /assets/* so existing template links keep working
+@app.route('/assets/<path:filename>')
+def serve_assets(filename: str):
+    assets_path = os.path.join(os.path.dirname(__file__), 'assets')
+    return send_from_directory(assets_path, filename)
+
+
+def is_admin_logged_in() -> bool:
+    return session.get('admin_logged_in') is True
+
+
+def require_admin():
+    if not is_admin_logged_in():
+        return redirect(url_for('admin_login'))
+    return None
+
+
+# Simple admin credential (stored securely via hash in code for now)
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD_HASH = os.environ.get(
+    'ADMIN_PASSWORD_HASH',
+    generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'changeme')),
+)
+
+
+# Initialize DB at import time for environments without before_first_request
+init_db()
+
+
+@app.route('/')
+@app.route('/index.html')
+def index():
+    with get_db_connection() as conn:
+        rows = conn.execute(
+            'SELECT id, title, content, date FROM posts ORDER BY id DESC'
+        ).fetchall()
+    posts = [dict(row) for row in rows]
+    return render_template('index.html', posts=posts)
+
+
+@app.route('/blogs/<int:post_id>')
+def blog_detail(post_id: int):
+    with get_db_connection() as conn:
+        row = conn.execute(
+            'SELECT id, title, content, date FROM posts WHERE id = ?', (post_id,)
+        ).fetchone()
+    if row is None:
+        abort(404)
+    post = dict(row)
+    return render_template('blogs.html', post=post)
+
+
+@app.route('/admin-login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid credentials', 'error')
+    return render_template('admin-login.html')
+
+
+@app.route('/admin')
+def admin_dashboard():
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    with get_db_connection() as conn:
+        rows = conn.execute('SELECT id, title, content, date FROM posts ORDER BY id DESC').fetchall()
+    posts = [dict(row) for row in rows]
+
+    return render_template('admin.html', posts=posts, edit_post=None)
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
+@app.route('/add-post', methods=['POST'])
+def add_post():
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    title = request.form.get('title', '').strip()
+    content = request.form.get('content', '').strip()
+    tags = request.form.get('tags', '').strip()
+
+    # Append tags to content for now to keep DB schema as requested
+    if tags:
+        content = f"{content}\n\nTags: {tags}"
+
+    date_str = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    if not title or not content:
+        flash('Title and content are required', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    with get_db_connection() as conn:
+        conn.execute(
+            'INSERT INTO posts (title, content, date) VALUES (?, ?, ?)',
+            (title, content, date_str),
+        )
+        conn.commit()
+
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/edit-post/<int:post_id>', methods=['GET', 'POST'])
+def edit_post(post_id: int):
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    with get_db_connection() as conn:
+        row = conn.execute('SELECT id, title, content, date FROM posts WHERE id = ?', (post_id,)).fetchone()
+    if row is None:
+        abort(404)
+    post = dict(row)
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        content = request.form.get('content', '').strip()
+        tags = request.form.get('tags', '').strip()
+
+        if tags:
+            # Replace or append tags: remove existing Tags: line if present, then add new
+            content_lines = [line for line in content.splitlines() if not line.startswith('Tags:')]
+            content = '\n'.join(content_lines)
+            content = f"{content}\n\nTags: {tags}"
+
+        if not title or not content:
+            flash('Title and content are required', 'error')
+            return redirect(url_for('edit_post', post_id=post_id))
+
+        with get_db_connection() as conn:
+            conn.execute(
+                'UPDATE posts SET title = ?, content = ? WHERE id = ?',
+                (title, content, post_id),
+            )
+            conn.commit()
+
+        return redirect(url_for('admin_dashboard'))
+
+    # GET: render admin dashboard with edit form populated
+    with get_db_connection() as conn:
+        rows = conn.execute('SELECT id, title, content, date FROM posts ORDER BY id DESC').fetchall()
+    posts = [dict(row) for row in rows]
+    return render_template('admin.html', posts=posts, edit_post=post)
+
+
+@app.route('/delete-post/<int:post_id>', methods=['POST'])
+def delete_post(post_id: int):
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    with get_db_connection() as conn:
+        conn.execute('DELETE FROM posts WHERE id = ?', (post_id,))
+        conn.commit()
+    return redirect(url_for('admin_dashboard'))
+
+
+if __name__ == '__main__':
+    # Ensure DB exists before running
+    init_db()
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
+

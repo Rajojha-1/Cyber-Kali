@@ -3,9 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-    
+<body class="bg-black text-white">
+    <header>
+      <nav class="navbar">
+        <div class="right_navbar text-white">
+        <img src="/assets/Void Society logo.svg" alt="" class="logo_png"/>
+          <a href="/" class="contact text-white">Contact us</a>
+          <a href="/index.html#blogs" class="contact text-white">Blogs</a>
+        </div>
+        <div class="logo"></div>
+        <div class="elements_navbar">
+          <a href="/index.html" class="home no-underline">Home</a>
+          <a href="/" class="resources">Resources</a>
+          <a href="/" class="about">About</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="min-h-[60vh] flex items-center justify-center px-6">
+      <form action="{{ url_for('admin_login') }}" method="POST" class="w-full max-w-md bg-[#0b0b0b] border border-gray-800 rounded-2xl p-8 shadow">
+        <h1 class="text-2xl font-semibold mb-6">Admin Login</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-4">
+              {% for category, message in messages %}
+                <div class="text-sm text-red-400">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <div class="mb-4">
+          <label class="block mb-2 text-sm text-gray-300">Username</label>
+          <input name="username" type="text" required class="w-full bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+        </div>
+        <div class="mb-6">
+          <label class="block mb-2 text-sm text-gray-300">Password</label>
+          <input name="password" type="password" required class="w-full bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+        </div>
+        <button type="submit" class="contact text-white">Login</button>
+      </form>
+    </main>
+
+    <script src="/script.js"></script>
 </body>
 </html>
