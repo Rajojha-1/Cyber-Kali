@@ -97,17 +97,19 @@ if (document.body.classList.contains('resources-page')) {
   const glowStop = document.getElementById('glow-stop');
   const scrollContainer = document.getElementById('road-scroll');
 
+  // Apply absolute positions from data attributes
+  checkpoints.forEach(cp => {
+    const xpct = parseFloat(cp.getAttribute('data-xpct') || '0');
+    const ypct = parseFloat(cp.getAttribute('data-ypct') || '60');
+    cp.style.left = xpct + '%';
+    cp.style.top = ypct + '%';
+  });
+
   function idFor(cp) { return cp.getAttribute('data-id'); }
   function branchFor(cp) { return cp.getAttribute('data-branch') || 'main'; }
   function orderFor(cp) { return parseInt(cp.getAttribute('data-order') || '0', 10); }
-  function leftFor(cp) {
-    const s = cp.style.left || '0px';
-    return parseFloat(s.replace('px','')) || 0;
-  }
 
-  function getProgress() {
-    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
-  }
+  function getProgress() { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } }
   function setProgress(progress) { localStorage.setItem(key, JSON.stringify(progress)); }
 
   function groupByBranch() {
@@ -120,7 +122,6 @@ if (document.body.classList.contains('resources-page')) {
   function refresh() {
     const progress = getProgress();
     const byBranch = groupByBranch();
-
     checkpoints.forEach(cp => {
       const done = progress.includes(idFor(cp));
       const b = branchFor(cp);
@@ -141,10 +142,7 @@ if (document.body.classList.contains('resources-page')) {
           updateGlowAndFog();
           const next = arr[idx+1];
           if (next && scrollContainer) {
-            const rect = next.getBoundingClientRect();
-            const parentRect = scrollContainer.getBoundingClientRect();
-            const delta = rect.left - parentRect.left - parentRect.width * 0.2;
-            scrollContainer.scrollBy({ left: delta, behavior: 'smooth' });
+            next.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
           }
         };
       }
@@ -160,7 +158,6 @@ if (document.body.classList.contains('resources-page')) {
       pct = Math.max(pct, xpct);
     });
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
-    // High baseline reveal; lighter fog
     if (fog) fog.style.setProperty('--fog-reveal', '90%');
   }
 

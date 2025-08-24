@@ -47,7 +47,7 @@
         </svg>
         <div class="checkpoints">
           {% for node in layout %}
-            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-branch="{{ node.branch }}" data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}" style="left: {{ (node.x / canvas_width) * 100 }}%; top: {{ node.y_pct }}%">
+            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-branch="{{ node.branch }}" data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}" data-ypct="{{ node.y_pct }}">
               <div class="card">
                 <h3>{{ node.title }}</h3>
                 <a href="{{ node.url }}" target="_blank" rel="noreferrer" class="link">Open resource</a>

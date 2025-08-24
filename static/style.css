@@ -81,7 +81,7 @@ body{
 }
 .elements_navbar{
     color: white;
-    gap: 80px;
+    gap: 120px;
     z-index: 10;
     justify-content: flex-end;
     font-size: large;
@@ -236,11 +236,11 @@ a:focus {
   background: transparent;
   border-radius: 16px;
   overflow: hidden;
-  min-height: 85vh;
+  min-height: 70vh;
   border: 1px solid #1f2937;
 }
-.roadmap-svg{ width: 100%; height: 85vh; display: block; }
-.checkpoints{ position: relative; width: 100%; height: 85vh; }
+.roadmap-svg{ width: 100%; height: 70vh; display: block; }
+.checkpoints{ position: relative; width: 100%; height: 70vh; }
 .checkpoint{
   position: absolute;
   transform: translate(-50%, -50%);
