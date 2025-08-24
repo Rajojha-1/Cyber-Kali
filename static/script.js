@@ -85,31 +85,57 @@ if (document.body.classList.contains('about-page')) {
 if (document.body.classList.contains('resources-page')) {
   const checkpoints = document.querySelectorAll('.checkpoint');
   const key = 'void_roadmap_progress';
-  const progress = JSON.parse(localStorage.getItem(key) || '[]');
+
+  // Always get fresh progress
+  function getProgress() {
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  }
 
   function updateLocks() {
+    const progress = getProgress();
     checkpoints.forEach((cp, idx) => {
       const id = cp.getAttribute('data-id');
       const unlocked = idx === 0 || progress.includes(checkpoints[idx - 1].getAttribute('data-id'));
+
       cp.classList.toggle('locked', !unlocked);
+
       const btn = cp.querySelector('.mark-btn');
+
       if (progress.includes(id)) {
         btn.textContent = 'Completed';
         btn.disabled = true;
         btn.style.opacity = '0.7';
+      } else {
+        btn.textContent = 'Mark complete';
+        btn.disabled = !unlocked; // only enable if unlocked
+        btn.style.opacity = unlocked ? '1' : '0.5';
       }
-      btn.addEventListener('click', () => {
-        if (cp.classList.contains('locked')) return;
-        if (!progress.includes(id)) {
-          progress.push(id);
-          localStorage.setItem(key, JSON.stringify(progress));
-          updateLocks();
-        }
-      });
     });
   }
+
+  // Attach click listeners once
+  checkpoints.forEach(cp => {
+    const btn = cp.querySelector('.mark-btn');
+    btn.addEventListener('click', () => {
+      const progress = getProgress();
+      const id = cp.getAttribute('data-id');
+
+      // Ignore if locked or already completed
+      if (cp.classList.contains('locked') || progress.includes(id)) return;
+
+      // Add to progress
+      progress.push(id);
+      localStorage.setItem(key, JSON.stringify(progress));
+
+      // Update UI
+      updateLocks();
+    });
+  });
+
+  // Initial render
   updateLocks();
 }
+
 
 // Blog reading progress bar
 (function() {
