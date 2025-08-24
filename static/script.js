@@ -95,7 +95,6 @@ if (document.body.classList.contains('resources-page')) {
   const checkpoints = Array.from(document.querySelectorAll('.checkpoint'));
   const fog = document.querySelector('.fog-mask');
   const glowStop = document.getElementById('glow-stop');
-  const scrollContainer = document.getElementById('road-scroll');
 
   // Apply absolute positions from data attributes
   checkpoints.forEach(cp => {
@@ -106,33 +105,19 @@ if (document.body.classList.contains('resources-page')) {
   });
 
   function idFor(cp) { return cp.getAttribute('data-id'); }
-  function branchFor(cp) { return cp.getAttribute('data-branch') || 'main'; }
   function orderFor(cp) { return parseInt(cp.getAttribute('data-order') || '0', 10); }
+
+  const ordered = checkpoints.slice().sort((a, b) => orderFor(a) - orderFor(b));
 
   function getProgress() { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } }
   function setProgress(progress) { localStorage.setItem(key, JSON.stringify(progress)); }
 
-  function groupByBranch() {
-    const byBranch = {};
-    checkpoints.forEach(cp => { (byBranch[branchFor(cp)] ||= []).push(cp); });
-    Object.values(byBranch).forEach(arr => arr.sort((a,b)=>orderFor(a)-orderFor(b)));
-    return byBranch;
-  }
-
   function refresh() {
     const progress = getProgress();
-    const byBranch = groupByBranch();
-    const rootId = (checkpoints.find(cp => branchFor(cp) === 'main' && orderFor(cp) === 0) || {}).getAttribute?.('data-id');
-    const rootDone = rootId ? progress.includes(rootId) : true;
-
-    checkpoints.forEach(cp => {
+    ordered.forEach((cp, idx) => {
       const done = progress.includes(idFor(cp));
-      const b = branchFor(cp);
-      const arr = byBranch[b] || [];
-      const idx = arr.indexOf(cp);
-      const prevCompleted = idx <= 0 || progress.includes(idFor(arr[idx-1]));
-      const requireRoot = b !== 'main';
-      const unlocked = (prevCompleted || done) && (requireRoot ? rootDone : true);
+      const prevCompleted = idx === 0 || progress.includes(idFor(ordered[idx - 1]));
+      const unlocked = (prevCompleted || done);
       const btn = cp.querySelector('.mark-btn');
       cp.classList.toggle('locked', !unlocked);
       if (btn) {
@@ -145,10 +130,8 @@ if (document.body.classList.contains('resources-page')) {
           setProgress(progress);
           refresh();
           updateGlowAndFog();
-          const next = arr[idx+1];
-          if (next && scrollContainer) {
-            next.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-          }
+          const next = ordered[idx + 1];
+          if (next) next.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         };
       }
     });
@@ -157,13 +140,13 @@ if (document.body.classList.contains('resources-page')) {
   function updateGlowAndFog() {
     const progress = getProgress();
     let pct = 0;
-    checkpoints.forEach(cp => {
+    ordered.forEach(cp => {
       if (!progress.includes(idFor(cp))) return;
       const xpct = parseFloat(cp.getAttribute('data-xpct') || '0');
       pct = Math.max(pct, xpct);
     });
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
-    if (fog) fog.style.setProperty('--fog-reveal', '90%');
+    if (fog) fog.style.setProperty('--fog-reveal', '94%');
   }
 
   refresh();

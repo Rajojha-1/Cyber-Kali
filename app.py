@@ -292,9 +292,8 @@ def add_resource():
 
     title = request.form.get('res_title', '').strip()
     url_val = request.form.get('res_url', '').strip()
-    branch = (request.form.get('res_branch', 'main') or 'main').strip()
-    parent_raw = request.form.get('res_parent_id', '').strip()
-    parent_id = int(parent_raw) if parent_raw.isdigit() else None
+    branch = 'main'
+    parent_id = None
     if not title or not url_val:
         flash('Resource title and URL are required', 'error')
         return redirect(url_for('admin_dashboard'))
@@ -302,8 +301,6 @@ def add_resource():
     with get_db_connection() as conn:
         root_id = ensure_root_exists(conn)
         # Default non-main parent to root if not provided
-        if branch != 'main' and parent_id is None:
-            parent_id = root_id
         max_order_row = conn.execute('SELECT COALESCE(MAX(order_index), -1) FROM resources WHERE branch = ?', (branch,)).fetchone()
         max_order = max_order_row[0] if max_order_row is not None else -1
         next_order = (max_order if max_order is not None else -1) + 1
@@ -372,115 +369,49 @@ def resources_page():
         ensure_root_exists(conn)
         resources = fetch_resources(conn)
 
-    # Build layout positions for roadmap
-    # Group by branch
-    branches: dict[str, list[dict]] = {}
-    for r in resources:
-        b = r.get('branch') or 'main'
-        branches.setdefault(b, []).append(r)
-    # Ensure order by order_index within branch
-    for b in branches:
-        branches[b] = sorted(branches[b], key=lambda x: x.get('order_index', 0))
+    # Only main branch, linear sequence
+    main_items = [r for r in resources if (r.get('branch') or 'main') == 'main']
+    main_items = sorted(main_items, key=lambda x: x.get('order_index', 0))
 
-    # Determine lane ordering: main at middle, others around
-    branch_names = sorted(branches.keys())
-    if 'main' in branch_names:
-        branch_names.remove('main')
-        branch_order = ['main'] + branch_names
-    else:
-        branch_order = branch_names
+    step_x = 260
+    margin_x = 120
+    svg_height = 600
 
-    step_x = 300  # px between checkpoints (wider spacing)
-    margin_x = 180  # starting offset
-    svg_height = 820  # px approximate for ~85vh on common displays
-
-    # Compute y positions per lane as percentage of container height
-    lane_count = max(1, len(branch_order))
-    lane_positions_pct = {}
-    if lane_count == 1:
-        lane_positions_pct['main' if branch_order else 'main'] = 60
-    else:
-        # Distribute lanes in a tighter vertical band to reduce spacing
-        top_pct = 48
-        bottom_pct = 68
-        if lane_count == 2:
-            positions = [52, 64]
-        else:
-            positions = [top_pct + i * ((bottom_pct - top_pct) / (lane_count - 1)) for i in range(lane_count)]
-        for i, b in enumerate(branch_order):
-            lane_positions_pct[b] = round(positions[i], 2)
-
-    # Compute layout points and total width
-    max_len = 0
+    y_pct = 58
     layout = []
-    id_to_node = {}
-    for b in branch_order:
-        items = branches.get(b, [])
-        max_len = max(max_len, len(items))
-        for i, r in enumerate(items):
-            x = margin_x + i * step_x
-            y_pct = lane_positions_pct.get(b, 60)
-            node = {
-                'id': r['id'],
-                'title': r['title'],
-                'url': r['url'],
-                'branch': b,
-                'parent_id': r.get('parent_id'),
-                'order_index': r.get('order_index', i),
-                'x': x,
-                'y_pct': y_pct,
-            }
-            layout.append(node)
-            id_to_node[r['id']] = node
+    for i, r in enumerate(main_items):
+        x = margin_x + i * step_x
+        layout.append({
+            'id': r['id'],
+            'title': r['title'],
+            'url': r['url'],
+            'order_index': r.get('order_index', i),
+            'x': x,
+            'y_pct': y_pct,
+        })
 
-    total_width = margin_x + (max_len if max_len > 0 else 1) * step_x + 200
+    total_width = margin_x + (len(main_items) if main_items else 1) * step_x + 180
 
-    # Build connectors for parent-child relationships
-    link_paths = []
-    for node in layout:
-        pid = node.get('parent_id')
-        if not pid:
-            continue
-        parent = id_to_node.get(pid)
-        if not parent:
-            continue
-        # Quadratic curve from parent to child
-        x1 = parent['x']
-        y1 = svg_height * (parent['y_pct'] / 100.0)
-        x2 = node['x']
-        y2 = svg_height * (node['y_pct'] / 100.0)
-        cx = (x1 + x2) / 2
-        cy = min(y1, y2) - 60  # arc above
-        d = f"M {int(x1)} {int(y1)} Q {int(cx)} {int(cy)} {int(x2)} {int(y2)}"
-        link_paths.append({'from': pid, 'to': node['id'], 'd': d})
-
-    # Build a wavy path across total width for each branch (simple repeating S curve)
-    def build_branch_path(y_base_pct: float) -> str:
-        y_base = svg_height * (y_base_pct / 100.0)
-        # Start near left margin
-        d = f"M 50 {int(y_base)} "
+    # Single path
+    def build_path():
+        y = int(svg_height * (y_pct / 100.0))
+        d = f"M 50 {y} "
         segment = 300
         x = 50
         toggle = 1
         while x < total_width - 50:
             cx1 = x + segment // 2
-            cy1 = y_base - 60 * toggle
+            cy1 = y - 50 * toggle
             x2 = min(total_width - 50, x + segment)
-            cy2 = y_base + 60 * toggle
+            cy2 = y + 50 * toggle
             d += f"S {int(cx1)} {int(cy1)}, {int(x2)} {int(cy2)} "
             x += segment
             toggle *= -1
         return d.strip()
 
-    branch_paths = [
-        {
-            'branch': b,
-            'd': build_branch_path(lane_positions_pct.get(b, 60))
-        }
-        for b in branch_order
-    ]
+    branch_paths = [{ 'branch': 'main', 'd': build_path() }]
 
-    return render_template('resources.html', layout=layout, branch_paths=branch_paths, canvas_width=total_width, svg_height=svg_height, link_paths=link_paths)
+    return render_template('resources.html', layout=layout, branch_paths=branch_paths, canvas_width=total_width, svg_height=svg_height)
 
 
 if __name__ == '__main__':

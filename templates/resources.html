@@ -24,11 +24,11 @@
     </nav>
   </header>
 
-  <main class="max-w-6xl mx-auto px-6 py-12">
-    <h1 class="text-3xl md:text-4xl font-semibold mb-10">Roadmap</h1>
+  <main class="max-w-6xl mx-auto px-6 py-10">
+    <h1 class="text-3xl md:text-4xl font-semibold mb-6">Roadmap</h1>
 
     <div class="roadmap-container" style="position: relative;">
-      <div id="road-scroll" style="overflow-x: {% if branch_paths and branch_paths|length > 1 %}auto{% else %}hidden{% endif %}; overflow-y: hidden; padding-bottom: 16px;">
+      <div id="road-scroll" style="overflow-x: hidden; overflow-y: hidden; padding-bottom: 8px;">
         <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}">
           <defs>
             <linearGradient id="pathGlow" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -39,15 +39,10 @@
           {% for bp in branch_paths %}
             <path d="{{ bp.d }}" stroke="url(#pathGlow)" stroke-width="12" fill="none" stroke-linecap="round" />
           {% endfor %}
-          {% if link_paths %}
-            {% for link in link_paths %}
-              <path d="{{ link.d }}" stroke="#475569" stroke-width="2" fill="none" stroke-dasharray="4 4" opacity="0.8" />
-            {% endfor %}
-          {% endif %}
         </svg>
         <div class="checkpoints">
           {% for node in layout %}
-            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-branch="{{ node.branch }}" data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}" data-ypct="{{ node.y_pct }}">
+            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}" data-ypct="{{ node.y_pct }}">
               <div class="card">
                 <h3>{{ node.title }}</h3>
                 <a href="{{ node.url }}" target="_blank" rel="noreferrer" class="link">Open resource</a>
@@ -57,10 +52,10 @@
           {% endfor %}
         </div>
       </div>
-      <div class="fog-mask" style="--fog-reveal: 90%;"></div>
+      <div class="fog-mask" style="--fog-reveal: 94%;"></div>
     </div>
 
-    <p class="text-gray-400 mt-28 text-sm">Progress is saved locally in your browser.</p>
+    <p class="text-gray-400 mt-10 text-sm">Progress is saved locally in your browser.</p>
   </main>
 
   <script src="/script.js"></script>
