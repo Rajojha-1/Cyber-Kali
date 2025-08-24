@@ -372,7 +372,7 @@ def resources_page():
 
     step_x = 260  # px between checkpoints
     margin_x = 120  # starting offset
-    svg_height = 360  # px
+    svg_height = 720  # px approximate for 80vh on common displays
 
     # Compute y positions per lane as percentage of container height
     lane_count = max(1, len(branch_order))
