@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Void</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
         <header>
@@ -35,40 +35,50 @@
     <div class="about_us bg-[#f5f5f6] text-black width-full h-[240px] flex justify-center items-center text-2xl font-poppins ">
         <p class="about_element">Join the Centre of Excellence for Cybersecurity and uncover the truth about security.</p>
     </div>
-    <div class="about_members width-full bg-black">
-      <div class="members">
-        <div class="president">
-        
-        </div>
-        <div class="vice_president"></div>
-        <div class="technical_head"></div>
-        <div class="Core"></div>
-      </div>
-    </div>
+<!-- Achivement -->
+<div class="about_members width-full bg-black">
+  <div class="Achievements text-white h-[140px]">Achievements</div>
+  <div class="members">
+    <div class="president">President</div>
+    <div class="vice_president">Vice President</div>
+    <div class="technical_head">Technical Head</div>
+    <div class="Core">Core</div>
+  </div>
+</div>
+
     <!-- Blogs Section -->
-    <section id="blogs" class="bg-black text-white py-12">
-      <div class="max-w-5xl mx-auto px-6">
-        <h2 class="text-3xl md:text-4xl font-semibold mb-6">Blogs</h2>
-        <div class="grid gap-6 md:grid-cols-2">
-          {% if posts and posts|length > 0 %}
-            {% for post in posts %}
-            <a href="{{ url_for('blog_detail', post_id=post.id) }}" class="block no-underline">
-              <div class="rounded-2xl border border-gray-800 hover:border-gray-600 transition shadow-sm hover:shadow-md bg-[#0b0b0b] p-6 h-full flex flex-col justify-between">
-                <div>
-                  <h3 class="text-2xl font-medium mb-2">{{ post.title }}</h3>
-                  <p class="text-gray-400 text-sm mb-4">{{ post.date }}</p>
-                  <p class="text-gray-300 leading-relaxed">{{ post.content[:180] }}{% if post.content|length > 180 %}...{% endif %}</p>
-                </div>
-                <div class="mt-4 text-cyan-300">Read more →</div>
-              </div>
-            </a>
-            {% endfor %}
-          {% else %}
-            <div class="col-span-full text-gray-400">No blog posts yet. Check back soon.</div>
-          {% endif %}
+<section id="blogs" class="bg-black text-white py-12">
+  <div class="max-w-4xl mx-auto px-6">
+    <h2 class="text-3xl md:text-4xl font-semibold mb-6">Blogs</h2>
+
+    {% if posts and posts|length > 0 %}
+      <div id="blog-slider" class="relative overflow-hidden w-full h-[300px]">
+        <div id="blog-track" class="flex transition-transform duration-700 ease-in-out">
+          {% for post in posts %}
+            <div class="blog-card min-w-full rounded-2xl border border-gray-800 bg-[#0b0b0b] p-6 shadow-sm hover:shadow-md">
+              <h3 class="text-2xl font-medium mb-2">{{ post.title }}</h3>
+              <p class="text-gray-400 text-sm mb-4">{{ post.date }}</p>
+              <p class="text-gray-300 leading-relaxed">{{ post.content[:180] }}{% if post.content|length > 180 %}...{% endif %}</p>
+              <a href="{{ url_for('blog_detail', post_id=post.id) }}" class="mt-4 inline-block text-cyan-300">Read more →</a>
+            </div>
+          {% endfor %}
         </div>
       </div>
-    </section>
-    <script src="/script.js"></script>
+  </div> <!-- closed blogs box -->
+
+  <!-- Navigation Buttons (outside the blogs box now) -->
+  <div id="changeBlog" class="flex justify-center gap-60 mt-0">
+    <button id="prevBlog" class="px-4 py-2 bg-gray rounded-lg hover:bg-gray-700">← Prev</button>
+    <button id="nextBlog" class="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700">Next →</button>
+  </div>
+
+    {% else %}
+      <div class="col-span-full text-gray-400">No blog posts yet. Check back soon.</div>
+    {% endif %}
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
