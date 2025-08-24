@@ -153,14 +153,15 @@ if (document.body.classList.contains('resources-page')) {
 
   function updateGlowAndFog() {
     const progress = getProgress();
-    let maxLeft = 0;
-    checkpoints.forEach(cp => { if (progress.includes(idFor(cp))) maxLeft = Math.max(maxLeft, leftFor(cp)); });
-    const container = document.getElementById('road-svg');
-    const canvasWidth = container ? (parseFloat(container.getAttribute('data-canvas-width') || '1200')) : 1200;
-    const pct = Math.min(100, (maxLeft / Math.max(1, canvasWidth)) * 100);
+    let pct = 0;
+    checkpoints.forEach(cp => {
+      if (!progress.includes(idFor(cp))) return;
+      const xpct = parseFloat(cp.getAttribute('data-xpct') || '0');
+      pct = Math.max(pct, xpct);
+    });
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
     // High baseline reveal; lighter fog
-    if (fog) fog.style.setProperty('--fog-reveal', '85%');
+    if (fog) fog.style.setProperty('--fog-reveal', '88%');
   }
 
   refresh();

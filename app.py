@@ -370,8 +370,8 @@ def resources_page():
     else:
         branch_order = branch_names
 
-    step_x = 300  # px between checkpoints
-    margin_x = 180  # starting offset
+    step_x = 180  # px between checkpoints (reduced spacing)
+    margin_x = 60  # starting offset
     svg_height = 720  # px approximate for 80vh on common displays
 
     # Compute y positions per lane as percentage of container height
