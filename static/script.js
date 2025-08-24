@@ -122,20 +122,25 @@ if (document.body.classList.contains('resources-page')) {
   function refresh() {
     const progress = getProgress();
     const byBranch = groupByBranch();
+    const rootId = (checkpoints.find(cp => branchFor(cp) === 'main' && orderFor(cp) === 0) || {}).getAttribute?.('data-id');
+    const rootDone = rootId ? progress.includes(rootId) : true;
+
     checkpoints.forEach(cp => {
       const done = progress.includes(idFor(cp));
       const b = branchFor(cp);
       const arr = byBranch[b] || [];
       const idx = arr.indexOf(cp);
       const prevCompleted = idx <= 0 || progress.includes(idFor(arr[idx-1]));
+      const requireRoot = b !== 'main';
+      const unlocked = (prevCompleted || done) && (requireRoot ? rootDone : true);
       const btn = cp.querySelector('.mark-btn');
-      cp.classList.toggle('locked', !(prevCompleted || done));
+      cp.classList.toggle('locked', !unlocked);
       if (btn) {
         btn.textContent = done ? 'Completed' : 'Mark complete';
-        btn.disabled = done || !prevCompleted;
-        btn.style.opacity = done ? '0.7' : (prevCompleted ? '1' : '0.5');
+        btn.disabled = done || !unlocked;
+        btn.style.opacity = done ? '0.7' : (unlocked ? '1' : '0.5');
         btn.onclick = () => {
-          if (cp.classList.contains('locked') || progress.includes(idFor(cp))) return;
+          if (!unlocked || done) return;
           progress.push(idFor(cp));
           setProgress(progress);
           refresh();
