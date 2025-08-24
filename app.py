@@ -369,8 +369,8 @@ def resources_page():
         ensure_root_exists(conn)
         resources = fetch_resources(conn)
 
-    # Only main branch, linear sequence
-    main_items = [r for r in resources if (r.get('branch') or 'main') == 'main']
+    # Only main branch, linear sequence; hide root 'Welcome' at order 0
+    main_items = [r for r in resources if (r.get('branch') or 'main') == 'main' and not (r.get('order_index', 0) == 0 and (r.get('title') or '').lower() == 'welcome')]
     main_items = sorted(main_items, key=lambda x: x.get('order_index', 0))
 
     step_x = 420
