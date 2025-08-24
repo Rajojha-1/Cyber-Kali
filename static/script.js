@@ -146,7 +146,11 @@ if (document.body.classList.contains('resources-page')) {
       pct = Math.max(pct, xpct);
     });
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
-    if (fog) fog.style.setProperty('--fog-reveal', '94%');
+    // Fog only at the last card area
+    const last = ordered[ordered.length - 1];
+    const lastPct = last ? parseFloat(last.getAttribute('data-xpct') || '100') : 100;
+    const reveal = Math.min(99, lastPct);
+    if (fog) fog.style.setProperty('--fog-reveal', `${reveal}%`);
   }
 
   refresh();
