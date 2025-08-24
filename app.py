@@ -374,7 +374,7 @@ def resources_page():
     main_items = sorted(main_items, key=lambda x: x.get('order_index', 0))
 
     step_x = 300
-    margin_x = 50
+    margin_x = 0
     svg_height = 600
 
     y_pct = 58
@@ -395,9 +395,9 @@ def resources_page():
     # Single path
     def build_path():
         y = int(svg_height * (y_pct / 100.0))
-        d = f"M 50 {y} "
+        d = f"M 0 {y} "
         segment = 300
-        x = 50
+        x = 0
         toggle = 1
         while x < total_width - 50:
             cx1 = x + segment // 2
