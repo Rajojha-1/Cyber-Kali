@@ -90,20 +90,37 @@ if (document.body.classList.contains('resources-page')) {
   const fog = document.querySelector('.fog-mask');
   const glowStop = document.getElementById('glow-stop');
   const scrollContainer = document.getElementById('road-scroll');
+  const svg = document.getElementById('road-svg');
+  const checkpointsWrap = document.querySelector('.checkpoints');
+
+  const canvasWidth = svg ? parseFloat(svg.dataset.canvasWidth || '1200') : 1200;
+
+  // Apply widths and absolute positions from data attributes
+  if (svg) {
+    svg.style.minWidth = canvasWidth + 'px';
+  }
+  if (checkpointsWrap) {
+    checkpointsWrap.style.minWidth = canvasWidth + 'px';
+  }
+  checkpoints.forEach(cp => {
+    const x = parseFloat(cp.dataset.x || '0');
+    const y = parseFloat(cp.dataset.y || '60');
+    cp.style.left = x + 'px';
+    cp.style.top = y + '%';
+  });
 
   function idFor(cp) { return cp.getAttribute('data-id'); }
   function branchFor(cp) { return cp.getAttribute('data-branch') || 'main'; }
   function orderFor(cp) { return parseInt(cp.getAttribute('data-order') || '0', 10); }
+  function xFor(cp) { return parseFloat(cp.getAttribute('data-x') || '0'); }
 
   function getProgress() {
     return JSON.parse(localStorage.getItem(key) || '[]');
   }
-
   function setProgress(progress) {
     localStorage.setItem(key, JSON.stringify(progress));
   }
 
-  // Group checkpoints by branch and order within each
   function groupByBranch() {
     const byBranch = {};
     checkpoints.forEach(cp => {
@@ -114,7 +131,7 @@ if (document.body.classList.contains('resources-page')) {
     return byBranch;
   }
 
-  function updateLocks() {
+  function wireButtons() {
     const progress = getProgress();
     const byBranch = groupByBranch();
 
@@ -135,9 +152,9 @@ if (document.body.classList.contains('resources-page')) {
         if (cp.classList.contains('locked') || progress.includes(idFor(cp))) return;
         progress.push(idFor(cp));
         setProgress(progress);
-        updateLocks();
+        wireButtons();
         updateGlowAndFog();
-        // Scroll next checkpoint into view (horizontal)
+        // Scroll next checkpoint into view
         const next = arr[idx + 1];
         if (next && scrollContainer) {
           const rect = next.getBoundingClientRect();
@@ -150,28 +167,25 @@ if (document.body.classList.contains('resources-page')) {
   }
 
   function updateGlowAndFog() {
-    // Reveal only first 4-5 by default; reveal more with progress
-    const byBranch = groupByBranch();
     const progress = getProgress();
-
-    // Compute overall completion ratio by position in each branch
-    let total = 0, completed = 0;
-    Object.values(byBranch).forEach(arr => {
-      total += arr.length;
-      arr.forEach(cp => { if (progress.includes(idFor(cp))) completed++; });
+    let maxX = 0;
+    checkpoints.forEach(cp => {
+      if (progress.includes(idFor(cp))) {
+        maxX = Math.max(maxX, xFor(cp));
+      }
     });
-    const pct = total > 0 ? (completed / total) * 100 : 0;
+    const pct = Math.min(100, (maxX / Math.max(1, canvasWidth)) * 100);
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
 
-    // Fog: start after ~4 items worth of width
-    // Estimate first 4 items -> about 25% reveal baseline plus progress factor
-    const baseline = 25; // initial reveal
-    const extra = Math.min(70, (completed * 12)); // each completion adds ~12%
+    // Softer fog by default and lighter progression
+    const totalCompleted = progress.length;
+    const baseline = 65; // baseline reveal
+    const extra = Math.min(25, totalCompleted * 5); // +5% per completion
     const reveal = Math.min(95, baseline + extra);
     if (fog) fog.style.setProperty('--fog-reveal', `${reveal}%`);
   }
 
-  updateLocks();
+  wireButtons();
   updateGlowAndFog();
 }
 
