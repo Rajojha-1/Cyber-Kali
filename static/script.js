@@ -1,15 +1,17 @@
+// Spotlight cursor effect
+const spotlightOverlay = document.querySelector('.spotlight_chupao');
+const spotlightSection = document.querySelector('.spotlight');
 
-  const spotlightOverlay = document.querySelector('.spotlight_chupao');
-  const spotlightSection = document.querySelector('.spotlight');
+document.addEventListener('mousemove', (event) => {
+  if (!spotlightOverlay || !spotlightSection) return;
+  const rect = spotlightSection.getBoundingClientRect();
+  const relativeX = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
+  const relativeY = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+  spotlightOverlay.style.setProperty('--mask-x', relativeX + 'px');
+  spotlightOverlay.style.setProperty('--mask-y', relativeY + 'px');
+});
 
-  document.addEventListener('mousemove', (event) => {
-    if (!spotlightOverlay || !spotlightSection) return;
-    const rect = spotlightSection.getBoundingClientRect();
-    const relativeX = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
-    const relativeY = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
-    spotlightOverlay.style.setProperty('--mask-x', relativeX + 'px');
-    spotlightOverlay.style.setProperty('--mask-y', relativeY + 'px');
-  });
+// Blog slider
 document.addEventListener("DOMContentLoaded", () => {
   const track = document.getElementById("blog-track");
   const blogs = document.querySelectorAll(".blog-card");
@@ -19,20 +21,20 @@ document.addEventListener("DOMContentLoaded", () => {
     track.style.transform = `translateX(-${current * 100}%)`;
   }
 
-  document.getElementById("nextBlog").addEventListener("click", () => {
+  document.getElementById("nextBlog")?.addEventListener("click", () => {
     current = (current + 1) % blogs.length;
     updateSlide();
   });
 
-  document.getElementById("prevBlog").addEventListener("click", () => {
+  document.getElementById("prevBlog")?.addEventListener("click", () => {
     current = (current - 1 + blogs.length) % blogs.length;
     updateSlide();
   });
 
-  // Initialize
   updateSlide();
 });
-// JS to track cursor inside button
+
+// Cursor tracking inside buttons
 document.querySelectorAll("#changeBlog > *").forEach(btn => {
   btn.addEventListener("mousemove", e => {
     const rect = btn.getBoundingClientRect();
@@ -40,32 +42,32 @@ document.querySelectorAll("#changeBlog > *").forEach(btn => {
     btn.style.setProperty("--y", `${e.clientY - rect.top}px`);
   });
 });
+
+// GSAP scroll animations
 gsap.registerPlugin(ScrollTrigger);
 
-// Timeline with scroll control
+// About members sliding animation
 let tl = gsap.timeline({
   scrollTrigger: {
     trigger: ".about_members",
     start: "top 80%",
     end: "bottom 60%",
     scrub: true,
-    markers: false // set true if you want debug markers
+    markers: false
   }
 });
 
-// Animate each child with alternating slide direction
 tl.from(".members > div", {
-  x: (i) => (i % 2 === 0 ? -200 : 200), // even = left, odd = right
+  x: (i) => (i % 2 === 0 ? -200 : 200),
   opacity: 0,
   duration: 1,
-  stagger: 1, // spacing per scroll step
+  stagger: 1,
   ease: "power2.out"
 });
 
-// About page animations
+// About page specific slide-in
 if (document.body.classList.contains('about-page')) {
-  gsap.registerPlugin(ScrollTrigger);
-  gsap.utils.toArray('.about-slide').forEach((el, i) => {
+  gsap.utils.toArray('.about-slide').forEach((el) => {
     const fromX = el.classList.contains('from-left') ? -100 : 100;
     gsap.fromTo(el, { x: fromX, opacity: 0 }, {
       x: 0,
@@ -81,18 +83,21 @@ if (document.body.classList.contains('about-page')) {
   });
 }
 
-// Enhanced resources logic: dynamic items, completion, glow, fog gating
+// Resources roadmap progression
 if (document.body.classList.contains('resources-page')) {
   const key = 'void_roadmap_progress';
-  const progress = JSON.parse(localStorage.getItem(key) || '[]');
   const checkpoints = Array.from(document.querySelectorAll('.checkpoint'));
   const fog = document.querySelector('.fog-mask');
   const glowStop = document.getElementById('glow-stop');
 
-  function idFor(cp){ return cp.getAttribute('data-id'); }
+  function idFor(cp) { return cp.getAttribute('data-id'); }
+
+  function getProgress() {
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  }
 
   function completedIndex() {
-    // return highest completed checkpoint index
+    const progress = getProgress();
     let highest = -1;
     checkpoints.forEach((cp, idx) => {
       if (progress.includes(idFor(cp))) highest = Math.max(highest, idx);
@@ -103,13 +108,15 @@ if (document.body.classList.contains('resources-page')) {
   function updateLocks() {
     const progress = getProgress();
     checkpoints.forEach((cp, idx) => {
-      const prevCompleted = idx === 0 || progress.includes(idFor(checkpoints[idx-1]));
-      const btn = cp.querySelector('.mark-btn');
+      const prevCompleted = idx === 0 || progress.includes(idFor(checkpoints[idx - 1]));
       const done = progress.includes(idFor(cp));
+      const btn = cp.querySelector('.mark-btn');
+
       cp.classList.toggle('locked', !(prevCompleted || done));
       btn.textContent = done ? 'Completed' : 'Mark complete';
-      btn.disabled = done;
-      btn.style.opacity = done ? '0.7' : '1';
+      btn.disabled = done || !prevCompleted;
+      btn.style.opacity = done ? '0.7' : (prevCompleted ? '1' : '0.5');
+
       btn.onclick = () => {
         if (cp.classList.contains('locked') || done) return;
         progress.push(idFor(cp));
@@ -127,11 +134,9 @@ if (document.body.classList.contains('resources-page')) {
     if (fog) fog.style.setProperty('--fog-reveal', `${Math.min(20 + pct * 0.7, 95)}%`);
   }
 
-  // Initialize
   updateLocks();
   updateGlowAndFog();
 }
-
 
 // Blog reading progress bar
 (function() {
@@ -147,5 +152,3 @@ if (document.body.classList.contains('resources-page')) {
   document.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 })();
-
-
