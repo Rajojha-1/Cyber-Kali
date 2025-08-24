@@ -103,9 +103,11 @@
       <!-- Resources Management -->
       <section class="bg-[#0b0b0b] border border-gray-800 rounded-2xl p-6 mt-10">
         <h2 class="text-xl font-medium mb-4">Resources Roadmap</h2>
-        <form action="{{ url_for('add_resource') }}" method="POST" class="grid md:grid-cols-3 gap-4 mb-6">
+        <form action="{{ url_for('add_resource') }}" method="POST" class="grid md:grid-cols-5 gap-4 mb-6">
           <input name="res_title" placeholder="Title" class="bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
           <input name="res_url" placeholder="YouTube or resource URL" class="bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+          <input name="res_branch" placeholder="Branch (e.g., main, web, linux)" class="bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+          <input name="res_parent_id" placeholder="Parent resource ID (optional)" class="bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
           <button class="contact text-white" type="submit">Add</button>
         </form>
         <div class="space-y-3">
@@ -113,8 +115,11 @@
             {% for r in resources %}
               <div class="flex items-center justify-between border border-gray-800 rounded-xl p-3">
                 <div class="flex-1">
-                  <div class="text-white">{{ loop.index }}. {{ r.title }}</div>
+                  <div class="text-white">{{ loop.index }}. [{{ r.branch or 'main' }}] {{ r.title }}</div>
                   <a class="text-cyan-300 text-sm" href="{{ r.url }}" target="_blank" rel="noreferrer">{{ r.url }}</a>
+                  {% if r.parent_id %}
+                    <div class="text-gray-400 text-xs">Parent ID: {{ r.parent_id }}</div>
+                  {% endif %}
                 </div>
                 <div class="flex items-center gap-2">
                   <form action="{{ url_for('move_resource', res_id=r.id, direction='up') }}" method="POST">

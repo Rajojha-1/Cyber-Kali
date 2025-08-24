@@ -40,6 +40,13 @@ def init_db():
             )
             """
         )
+        # Ensure new roadmap columns exist
+        res_cols = conn.execute('PRAGMA table_info(resources)').fetchall()
+        res_col_names = {c[1] for c in res_cols}
+        if 'branch' not in res_col_names:
+            conn.execute("ALTER TABLE resources ADD COLUMN branch TEXT DEFAULT 'main'")
+        if 'parent_id' not in res_col_names:
+            conn.execute('ALTER TABLE resources ADD COLUMN parent_id INTEGER NULL')
         conn.commit()
 
 
@@ -95,7 +102,7 @@ init_db()
 
 
 def fetch_resources(conn):
-    rows = conn.execute('SELECT id, title, url, order_index FROM resources ORDER BY order_index ASC').fetchall()
+    rows = conn.execute('SELECT id, title, url, order_index, branch, parent_id FROM resources ORDER BY branch ASC, order_index ASC').fetchall()
     return [dict(r) for r in rows]
 
 
@@ -270,14 +277,18 @@ def add_resource():
 
     title = request.form.get('res_title', '').strip()
     url_val = request.form.get('res_url', '').strip()
+    branch = (request.form.get('res_branch', 'main') or 'main').strip()
+    parent_raw = request.form.get('res_parent_id', '').strip()
+    parent_id = int(parent_raw) if parent_raw.isdigit() else None
     if not title or not url_val:
         flash('Resource title and URL are required', 'error')
         return redirect(url_for('admin_dashboard'))
 
     with get_db_connection() as conn:
-        max_order = conn.execute('SELECT COALESCE(MAX(order_index), -1) FROM resources').fetchone()[0]
+        max_order_row = conn.execute('SELECT COALESCE(MAX(order_index), -1) FROM resources WHERE branch = ?', (branch,)).fetchone()
+        max_order = max_order_row[0] if max_order_row is not None else -1
         next_order = (max_order if max_order is not None else -1) + 1
-        conn.execute('INSERT INTO resources (title, url, order_index) VALUES (?, ?, ?)', (title, url_val, next_order))
+        conn.execute('INSERT INTO resources (title, url, order_index, branch, parent_id) VALUES (?, ?, ?, ?, ?)', (title, url_val, next_order, branch, parent_id))
         conn.commit()
     return redirect(url_for('admin_dashboard'))
 
@@ -290,12 +301,13 @@ def delete_resource(res_id: int):
 
     with get_db_connection() as conn:
         # Get order of the item to delete
-        row = conn.execute('SELECT order_index FROM resources WHERE id = ?', (res_id,)).fetchone()
+        row = conn.execute('SELECT order_index, branch FROM resources WHERE id = ?', (res_id,)).fetchone()
         if row:
             order_idx = row['order_index']
+            branch = row['branch']
             conn.execute('DELETE FROM resources WHERE id = ?', (res_id,))
-            # Shift down items after this
-            conn.execute('UPDATE resources SET order_index = order_index - 1 WHERE order_index > ?', (order_idx,))
+            # Shift down items after this within the same branch
+            conn.execute('UPDATE resources SET order_index = order_index - 1 WHERE branch = ? AND order_index > ?', (branch, order_idx))
             conn.commit()
     return redirect(url_for('admin_dashboard'))
 
@@ -306,22 +318,23 @@ def move_resource(res_id: int, direction: str):
     if redirect_if_needed:
         return redirect_if_needed
 
-    if direction not in ('up', 'down'):
+    if direction not in {'up', 'down'}:
         abort(400)
 
     with get_db_connection() as conn:
-        row = conn.execute('SELECT id, order_index FROM resources WHERE id = ?', (res_id,)).fetchone()
+        row = conn.execute('SELECT id, order_index, branch FROM resources WHERE id = ?', (res_id,)).fetchone()
         if not row:
             abort(404)
         current_order = row['order_index']
+        branch = row['branch']
         swap_with = current_order - 1 if direction == 'up' else current_order + 1
 
-        other = conn.execute('SELECT id FROM resources WHERE order_index = ?', (swap_with,)).fetchone()
+        other = conn.execute('SELECT id FROM resources WHERE branch = ? AND order_index = ?', (branch, swap_with)).fetchone()
         if not other:
             return redirect(url_for('admin_dashboard'))
 
         other_id = other['id']
-        # Swap order_index values
+        # Swap order_index values within the branch
         conn.execute('UPDATE resources SET order_index = ? WHERE id = ?', (swap_with, res_id))
         conn.execute('UPDATE resources SET order_index = ? WHERE id = ?', (current_order, other_id))
         conn.commit()
@@ -338,7 +351,116 @@ def about_page():
 def resources_page():
     with get_db_connection() as conn:
         resources = fetch_resources(conn)
-    return render_template('resources.html', resources=resources)
+
+    # Build layout positions for roadmap
+    # Group by branch
+    branches: dict[str, list[dict]] = {}
+    for r in resources:
+        b = r.get('branch') or 'main'
+        branches.setdefault(b, []).append(r)
+    # Ensure order by order_index within branch
+    for b in branches:
+        branches[b] = sorted(branches[b], key=lambda x: x.get('order_index', 0))
+
+    # Determine lane ordering: main at middle, others around
+    branch_names = sorted(branches.keys())
+    if 'main' in branch_names:
+        branch_names.remove('main')
+        branch_order = ['main'] + branch_names
+    else:
+        branch_order = branch_names
+
+    step_x = 260  # px between checkpoints
+    margin_x = 120  # starting offset
+    svg_height = 360  # px
+
+    # Compute y positions per lane as percentage of container height
+    lane_count = max(1, len(branch_order))
+    lane_positions_pct = {}
+    if lane_count == 1:
+        lane_positions_pct['main' if branch_order else 'main'] = 60
+    else:
+        # Distribute lanes between 35% and 75%
+        top_pct = 35
+        bottom_pct = 75
+        if lane_count == 2:
+            positions = [45, 70]
+        else:
+            positions = [top_pct + i * ((bottom_pct - top_pct) / (lane_count - 1)) for i in range(lane_count)]
+        for i, b in enumerate(branch_order):
+            lane_positions_pct[b] = round(positions[i], 2)
+
+    # Compute layout points and total width
+    max_len = 0
+    layout = []
+    id_to_node = {}
+    for b in branch_order:
+        items = branches.get(b, [])
+        max_len = max(max_len, len(items))
+        for i, r in enumerate(items):
+            x = margin_x + i * step_x
+            y_pct = lane_positions_pct.get(b, 60)
+            node = {
+                'id': r['id'],
+                'title': r['title'],
+                'url': r['url'],
+                'branch': b,
+                'parent_id': r.get('parent_id'),
+                'order_index': r.get('order_index', i),
+                'x': x,
+                'y_pct': y_pct,
+            }
+            layout.append(node)
+            id_to_node[r['id']] = node
+
+    total_width = margin_x + (max_len if max_len > 0 else 1) * step_x + 200
+
+    # Build connectors for parent-child relationships
+    link_paths = []
+    for node in layout:
+        pid = node.get('parent_id')
+        if not pid:
+            continue
+        parent = id_to_node.get(pid)
+        if not parent:
+            continue
+        # Quadratic curve from parent to child
+        x1 = parent['x']
+        y1 = svg_height * (parent['y_pct'] / 100.0)
+        x2 = node['x']
+        y2 = svg_height * (node['y_pct'] / 100.0)
+        cx = (x1 + x2) / 2
+        cy = min(y1, y2) - 60  # arc above
+        d = f"M {int(x1)} {int(y1)} Q {int(cx)} {int(cy)} {int(x2)} {int(y2)}"
+        link_paths.append({'from': pid, 'to': node['id'], 'd': d})
+
+    # Build a wavy path across total width for each branch (simple repeating S curve)
+    def build_branch_path(y_base_pct: float) -> str:
+        y_base = svg_height * (y_base_pct / 100.0)
+        # Start near left margin
+        d = f"M 50 {int(y_base)} "
+        segment = 300
+        x = 50
+        toggle = 1
+        while x < total_width - 50:
+            cx1 = x + segment // 2
+            cy1 = y_base - 60 * toggle
+            x2 = min(total_width - 50, x + segment)
+            cy2 = y_base + 60 * toggle
+            d += f"S {int(cx1)} {int(cy1)}, {int(x2)} {int(cy2)} "
+            x += segment
+            toggle *= -1
+        return d.strip()
+
+    branch_paths = [
+        {
+            'branch': b,
+            'd': build_branch_path(lane_positions_pct.get(b, 60))
+        }
+        for b in branch_order
+    ]
+
+    return render_template('resources.html', layout=layout, branch_paths=branch_paths, canvas_width=total_width, svg_height=svg_height, link_paths=link_paths)
 
 
 if __name__ == '__main__':
