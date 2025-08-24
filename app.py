@@ -373,7 +373,7 @@ def resources_page():
     main_items = [r for r in resources if (r.get('branch') or 'main') == 'main']
     main_items = sorted(main_items, key=lambda x: x.get('order_index', 0))
 
-    step_x = 300
+    step_x = 420
     margin_x = 0
     svg_height = 600
 
