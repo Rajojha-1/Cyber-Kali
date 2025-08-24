@@ -44,43 +44,49 @@ document.querySelectorAll("#changeBlog > *").forEach(btn => {
 });
 
 // GSAP scroll animations
-gsap.registerPlugin(ScrollTrigger);
+try {
+  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
 
-// About members sliding animation
-let tl = gsap.timeline({
-  scrollTrigger: {
-    trigger: ".about_members",
-    start: "top 80%",
-    end: "bottom 60%",
-    scrub: true,
-    markers: false
-  }
-});
-
-tl.from(".members > div", {
-  x: (i) => (i % 2 === 0 ? -200 : 200),
-  opacity: 0,
-  duration: 1,
-  stagger: 1,
-  ease: "power2.out"
-});
-
-// About page specific slide-in
-if (document.body.classList.contains('about-page')) {
-  gsap.utils.toArray('.about-slide').forEach((el) => {
-    const fromX = el.classList.contains('from-left') ? -100 : 100;
-    gsap.fromTo(el, { x: fromX, opacity: 0 }, {
-      x: 0,
-      opacity: 1,
-      duration: 0.8,
-      ease: 'power2.out',
+    // About members sliding animation
+    let tl = gsap.timeline({
       scrollTrigger: {
-        trigger: el,
-        start: 'top 85%',
-        toggleActions: 'play none none reverse',
+        trigger: ".about_members",
+        start: "top 80%",
+        end: "bottom 60%",
+        scrub: true,
+        markers: false
       }
     });
-  });
+
+    tl.from(".members > div", {
+      x: (i) => (i % 2 === 0 ? -200 : 200),
+      opacity: 0,
+      duration: 1,
+      stagger: 1,
+      ease: "power2.out"
+    });
+
+    // About page specific slide-in
+    if (document.body.classList.contains('about-page')) {
+      gsap.utils.toArray('.about-slide').forEach((el) => {
+        const fromX = el.classList.contains('from-left') ? -100 : 100;
+        gsap.fromTo(el, { x: fromX, opacity: 0 }, {
+          x: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
+          }
+        });
+      });
+    }
+  }
+} catch (e) {
+  // Ignore GSAP errors to keep other scripts running
 }
 
 // Resources roadmap progression
