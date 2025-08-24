@@ -36,9 +36,11 @@
       <div id="road-scroll" style="overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; -webkit-overflow-scrolling: touch;">
         <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}" style="min-width: {{ canvas_width }}px;">
           <defs>
-            <linearGradient id="pathGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="pathGlow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="{{ canvas_width }}" y2="0">
               <stop offset="0%" stop-color="#22d3ee"/>
+              <stop id="glow-cut" offset="0%" stop-color="#22d3ee"/>
               <stop id="glow-stop" offset="0%" stop-color="#334155"/>
+              <stop offset="100%" stop-color="#334155"/>
             </linearGradient>
           </defs>
           {% for bp in branch_paths %}

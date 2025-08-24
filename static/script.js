@@ -95,6 +95,7 @@ if (document.body.classList.contains('resources-page')) {
   const checkpoints = Array.from(document.querySelectorAll('.checkpoint'));
   const fog = document.querySelector('.fog-mask');
   const glowStop = document.getElementById('glow-stop');
+  const glowCut = document.getElementById('glow-cut');
 
   // Apply absolute positions from data attributes
   checkpoints.forEach(cp => {
@@ -145,8 +146,15 @@ if (document.body.classList.contains('resources-page')) {
       const xpct = parseFloat(cp.getAttribute('data-xpct') || '0');
       pct = Math.max(pct, xpct);
     });
+    // If all checkpoints completed, force 100%
+    const allCompleted = progress.length >= ordered.length && ordered.length > 0;
+    if (allCompleted) pct = 100;
+
+    // Set a hard cutoff so the glow fills from the very left to `pct`.
+    if (glowCut) glowCut.setAttribute('offset', `${pct}%`);
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
-    // Fog only at the last card area
+
+    // Keep fog mask logic as-is (reveal around the last card area)
     const last = ordered[ordered.length - 1];
     const lastPct = last ? parseFloat(last.getAttribute('data-xpct') || '100') : 100;
     const reveal = Math.min(99, lastPct);
