@@ -99,26 +99,19 @@ ADMIN_PASSWORD_HASH = os.environ.get(
 
 # Initialize DB at import time for environments without before_first_request
 init_db()
+# Clean up any legacy 'Welcome' entries
+with get_db_connection() as _conn:
+    remove_welcome_if_exists(_conn)
 
 
 def fetch_resources(conn):
     rows = conn.execute('SELECT id, title, url, order_index, branch, parent_id FROM resources ORDER BY branch ASC, order_index ASC').fetchall()
     return [dict(r) for r in rows]
 
-def ensure_root_exists(conn) -> int:
-    """Ensure there is a root Welcome resource in main branch at order_index 0. Return its id."""
-    root = conn.execute("SELECT id FROM resources WHERE branch = 'main' AND order_index = 0 ORDER BY id LIMIT 1").fetchone()
-    if root:
-        return root['id']
-    # If main has items, shift them to make space for root at 0
-    conn.execute("UPDATE resources SET order_index = order_index + 1 WHERE branch = 'main'")
-    conn.execute(
-        'INSERT INTO resources (title, url, order_index, branch, parent_id) VALUES (?, ?, ?, ?, ?)',
-        ('Welcome', '#', 0, 'main', None)
-    )
+def remove_welcome_if_exists(conn) -> None:
+    """Remove any auto-created 'Welcome' root resource if present."""
+    conn.execute("DELETE FROM resources WHERE LOWER(title) = 'welcome'")
     conn.commit()
-    root_id = conn.execute("SELECT id FROM resources WHERE branch = 'main' AND order_index = 0 ORDER BY id LIMIT 1").fetchone()['id']
-    return root_id
 
 
 @app.route('/')
@@ -366,11 +359,10 @@ def about_page():
 @app.route('/resources')
 def resources_page():
     with get_db_connection() as conn:
-        ensure_root_exists(conn)
         resources = fetch_resources(conn)
 
-    # Only main branch, linear sequence; hide root 'Welcome' at order 0
-    main_items = [r for r in resources if (r.get('branch') or 'main') == 'main' and not (r.get('order_index', 0) == 0 and (r.get('title') or '').lower() == 'welcome')]
+    # Only main branch, linear sequence
+    main_items = [r for r in resources if (r.get('branch') or 'main') == 'main']
     main_items = sorted(main_items, key=lambda x: x.get('order_index', 0))
 
     step_x = 420
