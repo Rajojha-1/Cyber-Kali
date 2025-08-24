@@ -95,15 +95,24 @@ ADMIN_PASSWORD_HASH = os.environ.get(
     'ADMIN_PASSWORD_HASH',
     generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'changeme')),
 )
+def remove_welcome_if_exists(conn) -> None:
+    """Remove any auto-created 'Welcome' root resource if present."""
+    conn.execute("DELETE FROM resources WHERE LOWER(title) = 'welcome'")
+    conn.commit()
+
+
+def fetch_resources(conn):
+    rows = conn.execute(
+        'SELECT id, title, url, order_index, branch, parent_id FROM resources ORDER BY branch ASC, order_index ASC'
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 
 # Initialize DB at import time for environments without before_first_request
 init_db()
-
-
-def fetch_resources(conn):
-    rows = conn.execute('SELECT id, title, url, order_index, branch, parent_id FROM resources ORDER BY branch ASC, order_index ASC').fetchall()
-    return [dict(r) for r in rows]
+# Clean up any legacy 'Welcome' entries
+with get_db_connection() as _conn:
+    remove_welcome_if_exists(_conn)
 
 
 
@@ -352,7 +361,6 @@ def about_page():
 @app.route('/resources')
 def resources_page():
     with get_db_connection() as conn:
-        
         resources = fetch_resources(conn)
 
     # Only main branch, linear sequence
