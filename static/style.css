@@ -268,3 +268,10 @@ a:focus {
 
 /* Read progress bar on blog detail */
 #read-progress{ z-index: 9999; }
+#road-scroll{ width: 100%; }
+.fog-mask{
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) var(--fog-reveal, 25%), rgba(0,0,0,0.8) calc(var(--fog-reveal, 25%) + 5%), rgba(0,0,0,1) 100%);
+}
+.roadmap-svg path{ transition: stroke 0.4s ease; }

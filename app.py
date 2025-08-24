@@ -29,6 +29,17 @@ def init_db():
         col_names = {c[1] for c in cols}
         if 'image' not in col_names:
             conn.execute('ALTER TABLE posts ADD COLUMN image TEXT')
+        # Resources table
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS resources (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                url TEXT NOT NULL,
+                order_index INTEGER NOT NULL
+            )
+            """
+        )
         conn.commit()
 
 
@@ -83,6 +94,11 @@ ADMIN_PASSWORD_HASH = os.environ.get(
 init_db()
 
 
+def fetch_resources(conn):
+    rows = conn.execute('SELECT id, title, url, order_index FROM resources ORDER BY order_index ASC').fetchall()
+    return [dict(r) for r in rows]
+
+
 @app.route('/')
 @app.route('/index.html')
 def index():
@@ -127,9 +143,10 @@ def admin_dashboard():
 
     with get_db_connection() as conn:
         rows = conn.execute('SELECT id, title, content, date, image FROM posts ORDER BY id DESC').fetchall()
+        resources = fetch_resources(conn)
     posts = [dict(row) for row in rows]
 
-    return render_template('admin.html', posts=posts, edit_post=None)
+    return render_template('admin.html', posts=posts, edit_post=None, resources=resources)
 
 
 @app.route('/logout')
@@ -245,6 +262,73 @@ def delete_post(post_id: int):
     return redirect(url_for('admin_dashboard'))
 
 
+@app.route('/add-resource', methods=['POST'])
+def add_resource():
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    title = request.form.get('res_title', '').strip()
+    url_val = request.form.get('res_url', '').strip()
+    if not title or not url_val:
+        flash('Resource title and URL are required', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+    with get_db_connection() as conn:
+        max_order = conn.execute('SELECT COALESCE(MAX(order_index), -1) FROM resources').fetchone()[0]
+        next_order = (max_order if max_order is not None else -1) + 1
+        conn.execute('INSERT INTO resources (title, url, order_index) VALUES (?, ?, ?)', (title, url_val, next_order))
+        conn.commit()
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/delete-resource/<int:res_id>', methods=['POST'])
+def delete_resource(res_id: int):
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    with get_db_connection() as conn:
+        # Get order of the item to delete
+        row = conn.execute('SELECT order_index FROM resources WHERE id = ?', (res_id,)).fetchone()
+        if row:
+            order_idx = row['order_index']
+            conn.execute('DELETE FROM resources WHERE id = ?', (res_id,))
+            # Shift down items after this
+            conn.execute('UPDATE resources SET order_index = order_index - 1 WHERE order_index > ?', (order_idx,))
+            conn.commit()
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/move-resource/<int:res_id>/<string:direction>', methods=['POST'])
+def move_resource(res_id: int, direction: str):
+    redirect_if_needed = require_admin()
+    if redirect_if_needed:
+        return redirect_if_needed
+
+    if direction not in ('up', 'down'):
+        abort(400)
+
+    with get_db_connection() as conn:
+        row = conn.execute('SELECT id, order_index FROM resources WHERE id = ?', (res_id,)).fetchone()
+        if not row:
+            abort(404)
+        current_order = row['order_index']
+        swap_with = current_order - 1 if direction == 'up' else current_order + 1
+
+        other = conn.execute('SELECT id FROM resources WHERE order_index = ?', (swap_with,)).fetchone()
+        if not other:
+            return redirect(url_for('admin_dashboard'))
+
+        other_id = other['id']
+        # Swap order_index values
+        conn.execute('UPDATE resources SET order_index = ? WHERE id = ?', (swap_with, res_id))
+        conn.execute('UPDATE resources SET order_index = ? WHERE id = ?', (current_order, other_id))
+        conn.commit()
+
+    return redirect(url_for('admin_dashboard'))
+
+
 @app.route('/about')
 def about_page():
     return render_template('about.html')
@@ -252,7 +336,9 @@ def about_page():
 
 @app.route('/resources')
 def resources_page():
-    return render_template('resources.html')
+    with get_db_connection() as conn:
+        resources = fetch_resources(conn)
+    return render_template('resources.html', resources=resources)
 
 
 if __name__ == '__main__':

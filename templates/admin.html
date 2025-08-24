@@ -99,6 +99,41 @@
           </div>
         </section>
       </div>
+
+      <!-- Resources Management -->
+      <section class="bg-[#0b0b0b] border border-gray-800 rounded-2xl p-6 mt-10">
+        <h2 class="text-xl font-medium mb-4">Resources Roadmap</h2>
+        <form action="{{ url_for('add_resource') }}" method="POST" class="grid md:grid-cols-3 gap-4 mb-6">
+          <input name="res_title" placeholder="Title" class="bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+          <input name="res_url" placeholder="YouTube or resource URL" class="bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+          <button class="contact text-white" type="submit">Add</button>
+        </form>
+        <div class="space-y-3">
+          {% if resources and resources|length > 0 %}
+            {% for r in resources %}
+              <div class="flex items-center justify-between border border-gray-800 rounded-xl p-3">
+                <div class="flex-1">
+                  <div class="text-white">{{ loop.index }}. {{ r.title }}</div>
+                  <a class="text-cyan-300 text-sm" href="{{ r.url }}" target="_blank" rel="noreferrer">{{ r.url }}</a>
+                </div>
+                <div class="flex items-center gap-2">
+                  <form action="{{ url_for('move_resource', res_id=r.id, direction='up') }}" method="POST">
+                    <button class="px-2 py-1 bg-gray-800 rounded">↑</button>
+                  </form>
+                  <form action="{{ url_for('move_resource', res_id=r.id, direction='down') }}" method="POST">
+                    <button class="px-2 py-1 bg-gray-800 rounded">↓</button>
+                  </form>
+                  <form action="{{ url_for('delete_resource', res_id=r.id) }}" method="POST" onsubmit="return confirm('Delete this resource?');">
+                    <button class="px-2 py-1 bg-red-700 rounded">Delete</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-gray-400">No resources yet.</div>
+          {% endif %}
+        </div>
+      </section>
     </main>
 
     <script src="/script.js"></script>

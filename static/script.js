@@ -81,34 +81,54 @@ if (document.body.classList.contains('about-page')) {
   });
 }
 
-// Resources roadmap progression
+// Enhanced resources logic: dynamic items, completion, glow, fog gating
 if (document.body.classList.contains('resources-page')) {
-  const checkpoints = document.querySelectorAll('.checkpoint');
   const key = 'void_roadmap_progress';
   const progress = JSON.parse(localStorage.getItem(key) || '[]');
+  const checkpoints = Array.from(document.querySelectorAll('.checkpoint'));
+  const fog = document.querySelector('.fog-mask');
+  const glowStop = document.getElementById('glow-stop');
+
+  function idFor(cp){ return cp.getAttribute('data-id'); }
+
+  function completedIndex() {
+    // return highest completed checkpoint index
+    let highest = -1;
+    checkpoints.forEach((cp, idx) => {
+      if (progress.includes(idFor(cp))) highest = Math.max(highest, idx);
+    });
+    return highest;
+  }
 
   function updateLocks() {
     checkpoints.forEach((cp, idx) => {
-      const id = cp.getAttribute('data-id');
-      const unlocked = idx === 0 || progress.includes(checkpoints[idx - 1].getAttribute('data-id'));
-      cp.classList.toggle('locked', !unlocked);
+      const prevCompleted = idx === 0 || progress.includes(idFor(checkpoints[idx-1]));
       const btn = cp.querySelector('.mark-btn');
-      if (progress.includes(id)) {
-        btn.textContent = 'Completed';
-        btn.disabled = true;
-        btn.style.opacity = '0.7';
-      }
-      btn.addEventListener('click', () => {
-        if (cp.classList.contains('locked')) return;
-        if (!progress.includes(id)) {
-          progress.push(id);
-          localStorage.setItem(key, JSON.stringify(progress));
-          updateLocks();
-        }
-      });
+      const done = progress.includes(idFor(cp));
+      cp.classList.toggle('locked', !(prevCompleted || done));
+      btn.textContent = done ? 'Completed' : 'Mark complete';
+      btn.disabled = done;
+      btn.style.opacity = done ? '0.7' : '1';
+      btn.onclick = () => {
+        if (cp.classList.contains('locked') || done) return;
+        progress.push(idFor(cp));
+        localStorage.setItem(key, JSON.stringify(progress));
+        updateLocks();
+        updateGlowAndFog();
+      };
     });
   }
+
+  function updateGlowAndFog() {
+    const idx = completedIndex();
+    const pct = checkpoints.length > 0 ? ((idx + 1) / checkpoints.length) * 100 : 0;
+    if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
+    if (fog) fog.style.setProperty('--fog-reveal', `${Math.min(20 + pct * 0.7, 95)}%`);
+  }
+
+  // Initialize
   updateLocks();
+  updateGlowAndFog();
 }
 
 // Blog reading progress bar
