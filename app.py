@@ -370,9 +370,9 @@ def resources_page():
     else:
         branch_order = branch_names
 
-    step_x = 180  # px between checkpoints (reduced spacing)
-    margin_x = 60  # starting offset
-    svg_height = 720  # px approximate for 80vh on common displays
+    step_x = 300  # px between checkpoints (wider spacing)
+    margin_x = 180  # starting offset
+    svg_height = 820  # px approximate for ~85vh on common displays
 
     # Compute y positions per lane as percentage of container height
     lane_count = max(1, len(branch_order))
@@ -380,11 +380,11 @@ def resources_page():
     if lane_count == 1:
         lane_positions_pct['main' if branch_order else 'main'] = 60
     else:
-        # Distribute lanes between 35% and 75%
-        top_pct = 35
-        bottom_pct = 75
+        # Distribute lanes in a tighter vertical band to reduce spacing
+        top_pct = 48
+        bottom_pct = 68
         if lane_count == 2:
-            positions = [45, 70]
+            positions = [52, 64]
         else:
             positions = [top_pct + i * ((bottom_pct - top_pct) / (lane_count - 1)) for i in range(lane_count)]
         for i, b in enumerate(branch_order):

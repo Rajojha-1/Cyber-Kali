@@ -161,7 +161,7 @@ if (document.body.classList.contains('resources-page')) {
     });
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
     // High baseline reveal; lighter fog
-    if (fog) fog.style.setProperty('--fog-reveal', '88%');
+    if (fog) fog.style.setProperty('--fog-reveal', '90%');
   }
 
   refresh();
