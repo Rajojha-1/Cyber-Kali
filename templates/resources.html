@@ -28,8 +28,8 @@
     <h1 class="text-3xl md:text-4xl font-semibold mb-6">Roadmap</h1>
 
     <div class="roadmap-container" style="position: relative;">
-      <div id="road-scroll" style="overflow-x: hidden; overflow-y: hidden; padding-bottom: 8px;">
-        <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}">
+      <div id="road-scroll" style="overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; -webkit-overflow-scrolling: touch;">
+        <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}" style="min-width: {{ canvas_width }}px;">
           <defs>
             <linearGradient id="pathGlow" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#22d3ee"/>
@@ -40,7 +40,7 @@
             <path d="{{ bp.d }}" stroke="url(#pathGlow)" stroke-width="12" fill="none" stroke-linecap="round" />
           {% endfor %}
         </svg>
-        <div class="checkpoints">
+        <div class="checkpoints" style="min-width: {{ canvas_width }}px;">
           {% for node in layout %}
             <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}" data-ypct="{{ node.y_pct }}">
               <div class="card">
