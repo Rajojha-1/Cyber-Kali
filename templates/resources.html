@@ -29,7 +29,7 @@
 
     <div class="roadmap-container" style="position: relative;">
       <div id="road-scroll" style="overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding-bottom: 16px;">
-        <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}">
+        <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}" style="min-width: {{ canvas_width }}px; height: 70vh;">
           <defs>
             <linearGradient id="pathGlow" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#22d3ee"/>
@@ -45,9 +45,9 @@
             {% endfor %}
           {% endif %}
         </svg>
-        <div class="checkpoints">
+        <div class="checkpoints" style="min-width: {{ canvas_width }}px; height: 70vh;">
           {% for node in layout %}
-            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-branch="{{ node.branch }}" data-order="{{ node.order_index }}" data-x="{{ node.x }}" data-y="{{ node.y_pct }}">
+            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-branch="{{ node.branch }}" data-order="{{ node.order_index }}" style="left: {{ node.x }}px; top: {{ node.y_pct }}%">
               <div class="card">
                 <h3>{{ node.title }}</h3>
                 <a href="{{ node.url }}" target="_blank" rel="noreferrer" class="link">Open resource</a>
@@ -57,7 +57,7 @@
           {% endfor %}
         </div>
       </div>
-      <div class="fog-mask"></div>
+      <div class="fog-mask" style="--fog-reveal: 85%;"></div>
     </div>
 
     <p class="text-gray-400 mt-28 text-sm">Progress is saved locally in your browser.</p>

@@ -90,48 +90,28 @@ if (document.body.classList.contains('resources-page')) {
   const fog = document.querySelector('.fog-mask');
   const glowStop = document.getElementById('glow-stop');
   const scrollContainer = document.getElementById('road-scroll');
-  const svg = document.getElementById('road-svg');
-  const checkpointsWrap = document.querySelector('.checkpoints');
-
-  const canvasWidth = svg ? parseFloat(svg.dataset.canvasWidth || '1200') : 1200;
-
-  // Apply widths and absolute positions from data attributes
-  if (svg) {
-    svg.style.minWidth = canvasWidth + 'px';
-  }
-  if (checkpointsWrap) {
-    checkpointsWrap.style.minWidth = canvasWidth + 'px';
-  }
-  checkpoints.forEach(cp => {
-    const x = parseFloat(cp.dataset.x || '0');
-    const y = parseFloat(cp.dataset.y || '60');
-    cp.style.left = x + 'px';
-    cp.style.top = y + '%';
-  });
 
   function idFor(cp) { return cp.getAttribute('data-id'); }
   function branchFor(cp) { return cp.getAttribute('data-branch') || 'main'; }
   function orderFor(cp) { return parseInt(cp.getAttribute('data-order') || '0', 10); }
-  function xFor(cp) { return parseFloat(cp.getAttribute('data-x') || '0'); }
+  function leftFor(cp) {
+    const s = cp.style.left || '0px';
+    return parseFloat(s.replace('px','')) || 0;
+  }
 
   function getProgress() {
-    return JSON.parse(localStorage.getItem(key) || '[]');
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
   }
-  function setProgress(progress) {
-    localStorage.setItem(key, JSON.stringify(progress));
-  }
+  function setProgress(progress) { localStorage.setItem(key, JSON.stringify(progress)); }
 
   function groupByBranch() {
     const byBranch = {};
-    checkpoints.forEach(cp => {
-      const b = branchFor(cp);
-      (byBranch[b] ||= []).push(cp);
-    });
-    Object.values(byBranch).forEach(arr => arr.sort((a, b) => orderFor(a) - orderFor(b)));
+    checkpoints.forEach(cp => { (byBranch[branchFor(cp)] ||= []).push(cp); });
+    Object.values(byBranch).forEach(arr => arr.sort((a,b)=>orderFor(a)-orderFor(b)));
     return byBranch;
   }
 
-  function wireButtons() {
+  function refresh() {
     const progress = getProgress();
     const byBranch = groupByBranch();
 
@@ -140,52 +120,44 @@ if (document.body.classList.contains('resources-page')) {
       const b = branchFor(cp);
       const arr = byBranch[b] || [];
       const idx = arr.indexOf(cp);
-      const prevCompleted = idx <= 0 || progress.includes(idFor(arr[idx - 1]));
+      const prevCompleted = idx <= 0 || progress.includes(idFor(arr[idx-1]));
       const btn = cp.querySelector('.mark-btn');
-
       cp.classList.toggle('locked', !(prevCompleted || done));
-      btn.textContent = done ? 'Completed' : 'Mark complete';
-      btn.disabled = done || !prevCompleted;
-      btn.style.opacity = done ? '0.7' : (prevCompleted ? '1' : '0.5');
-
-      btn.onclick = () => {
-        if (cp.classList.contains('locked') || progress.includes(idFor(cp))) return;
-        progress.push(idFor(cp));
-        setProgress(progress);
-        wireButtons();
-        updateGlowAndFog();
-        // Scroll next checkpoint into view
-        const next = arr[idx + 1];
-        if (next && scrollContainer) {
-          const rect = next.getBoundingClientRect();
-          const parentRect = scrollContainer.getBoundingClientRect();
-          const delta = rect.left - parentRect.left - parentRect.width * 0.2;
-          scrollContainer.scrollBy({ left: delta, behavior: 'smooth' });
-        }
-      };
+      if (btn) {
+        btn.textContent = done ? 'Completed' : 'Mark complete';
+        btn.disabled = done || !prevCompleted;
+        btn.style.opacity = done ? '0.7' : (prevCompleted ? '1' : '0.5');
+        btn.onclick = () => {
+          if (cp.classList.contains('locked') || progress.includes(idFor(cp))) return;
+          progress.push(idFor(cp));
+          setProgress(progress);
+          refresh();
+          updateGlowAndFog();
+          const next = arr[idx+1];
+          if (next && scrollContainer) {
+            const rect = next.getBoundingClientRect();
+            const parentRect = scrollContainer.getBoundingClientRect();
+            const delta = rect.left - parentRect.left - parentRect.width * 0.2;
+            scrollContainer.scrollBy({ left: delta, behavior: 'smooth' });
+          }
+        };
+      }
     });
   }
 
   function updateGlowAndFog() {
     const progress = getProgress();
-    let maxX = 0;
-    checkpoints.forEach(cp => {
-      if (progress.includes(idFor(cp))) {
-        maxX = Math.max(maxX, xFor(cp));
-      }
-    });
-    const pct = Math.min(100, (maxX / Math.max(1, canvasWidth)) * 100);
+    let maxLeft = 0;
+    checkpoints.forEach(cp => { if (progress.includes(idFor(cp))) maxLeft = Math.max(maxLeft, leftFor(cp)); });
+    const container = document.getElementById('road-svg');
+    const canvasWidth = container ? (parseFloat(container.getAttribute('data-canvas-width') || '1200')) : 1200;
+    const pct = Math.min(100, (maxLeft / Math.max(1, canvasWidth)) * 100);
     if (glowStop) glowStop.setAttribute('offset', `${pct}%`);
-
-    // Softer fog by default and lighter progression
-    const totalCompleted = progress.length;
-    const baseline = 65; // baseline reveal
-    const extra = Math.min(25, totalCompleted * 5); // +5% per completion
-    const reveal = Math.min(95, baseline + extra);
-    if (fog) fog.style.setProperty('--fog-reveal', `${reveal}%`);
+    // High baseline reveal; lighter fog
+    if (fog) fog.style.setProperty('--fog-reveal', '85%');
   }
 
-  wireButtons();
+  refresh();
   updateGlowAndFog();
 }
 
