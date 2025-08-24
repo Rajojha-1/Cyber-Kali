@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resources Roadmap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="bg-black text-white resources-page">
+  <header>
+    <nav class="navbar">
+      <div class="right_navbar text-white">
+        <img src="/assets/Void Society logo.svg" alt="" class="logo_png" />
+        <a href="/" class="contact text-white">Contact us</a>
+        <a href="/index.html#blogs" class="contact text-white">Blogs</a>
+      </div>
+      <div class="logo"></div>
+      <div class="elements_navbar">
+        <a href="/index.html" class="home no-underline">Home</a>
+        <a href="/resources" class="resources">Resources</a>
+        <a href="/about" class="about">About</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-12">
+    <h1 class="text-3xl md:text-4xl font-semibold mb-10">Roadmap</h1>
+
+    <div class="roadmap-container">
+      <svg class="roadmap-svg" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid meet">
+        <path id="road-path" d="M 50 350 C 200 300, 300 200, 450 250 S 700 350, 850 300 S 1050 200, 1150 250" stroke="#334155" stroke-width="12" fill="none" stroke-linecap="round" />
+      </svg>
+      <div class="checkpoints">
+        <div class="checkpoint" data-id="cp1" style="left: 8%; top: 66%">
+          <div class="card">
+            <h3>Intro to Cyber</h3>
+            <a href="https://www.youtube.com/watch?v=SzJ46YA_RaA" target="_blank" rel="noreferrer" class="link">Watch video</a>
+            <button class="mark-btn">Mark complete</button>
+          </div>
+        </div>
+        <div class="checkpoint locked" data-id="cp2" style="left: 34%; top: 44%">
+          <div class="card">
+            <h3>Linux Basics</h3>
+            <a href="https://www.youtube.com/watch?v=ZtqBQ68cfJc" target="_blank" rel="noreferrer" class="link">Watch video</a>
+            <button class="mark-btn">Mark complete</button>
+          </div>
+        </div>
+        <div class="checkpoint locked" data-id="cp3" style="left: 60%; top: 64%">
+          <div class="card">
+            <h3>Networking</h3>
+            <a href="https://www.youtube.com/watch?v=qiQR5rTSshw" target="_blank" rel="noreferrer" class="link">Watch video</a>
+            <button class="mark-btn">Mark complete</button>
+          </div>
+        </div>
+        <div class="checkpoint locked" data-id="cp4" style="left: 86%; top: 48%">
+          <div class="card">
+            <h3>Web Security</h3>
+            <a href="https://www.youtube.com/watch?v=U0w0jz2GzCA" target="_blank" rel="noreferrer" class="link">Watch video</a>
+            <button class="mark-btn">Mark complete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-gray-400 mt-8 text-sm">Progress is saved locally in your browser.</p>
+  </main>
+
+  <script src="/script.js"></script>
+</body>
+</html>

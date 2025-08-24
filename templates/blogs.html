@@ -18,18 +18,23 @@
         <div class="logo"></div>
         <div class="elements_navbar">
           <a href="/index.html" class="home no-underline">Home</a>
-          <a href="/" class="resources">Resources</a>
-          <a href="/" class="about">About</a>
+          <a href="/resources" class="resources">Resources</a>
+          <a href="/about" class="about">About</a>
         </div>
       </nav>
     </header>
 
+    <div id="read-progress" class="fixed top-0 left-0 h-1 bg-cyan-400" style="width:0%"></div>
+
     <main class="max-w-3xl mx-auto px-6 py-10">
       {% if post %}
-      <article class="prose prose-invert max-w-none">
-        <h1 class="text-4xl font-semibold mb-2">{{ post.title }}</h1>
-        <p class="text-gray-400 mb-8">{{ post.date }}</p>
-        <div class="text-gray-200 whitespace-pre-wrap leading-relaxed">{{ post.content }}</div>
+      <article class="max-w-none">
+        <h1 class="text-4xl md:text-5xl font-semibold tracking-tight mb-3">{{ post.title }}</h1>
+        <p class="text-gray-400 mb-6">{{ post.date }}</p>
+        {% if post.image %}
+          <img src="/uploads/{{ post.image }}" alt="cover" class="w-full max-h-[480px] object-cover rounded-xl border border-gray-800 mb-8" />
+        {% endif %}
+        <div class="prose prose-invert prose-lg max-w-none text-gray-200 whitespace-pre-wrap leading-relaxed">{{ post.content }}</div>
       </article>
       {% else %}
         <div class="text-gray-400">Post not found.</div>

@@ -18,8 +18,8 @@
         <div class="logo"></div>
         <div class="elements_navbar">
           <a href="/index.html" class="home no-underline">Home</a>
-          <a href="/" class="resources">Resources</a>
-          <a href="/" class="about">About</a>
+          <a href="/resources" class="resources">Resources</a>
+          <a href="/about" class="about">About</a>
         </div>
       </nav>
     </header>
@@ -52,14 +52,21 @@
     <h2 class="text-3xl md:text-4xl font-semibold mb-6">Blogs</h2>
 
     {% if posts and posts|length > 0 %}
-      <div id="blog-slider" class="relative overflow-hidden w-full h-[300px]">
+      <div id="blog-slider" class="relative overflow-hidden w-full h-[360px]">
         <div id="blog-track" class="flex transition-transform duration-700 ease-in-out">
           {% for post in posts %}
             <div class="blog-card min-w-full rounded-2xl border border-gray-800 bg-[#0b0b0b] p-6 shadow-sm hover:shadow-md">
-              <h3 class="text-2xl font-medium mb-2">{{ post.title }}</h3>
-              <p class="text-gray-400 text-sm mb-4">{{ post.date }}</p>
-              <p class="text-gray-300 leading-relaxed">{{ post.content[:180] }}{% if post.content|length > 180 %}...{% endif %}</p>
-              <a href="{{ url_for('blog_detail', post_id=post.id) }}" class="mt-4 inline-block text-cyan-300">Read more →</a>
+              <div class="flex gap-6">
+                {% if post.image %}
+                  <img src="/uploads/{{ post.image }}" alt="" class="w-40 h-28 object-cover rounded-lg border border-gray-800 hidden md:block" />
+                {% endif %}
+                <div class="flex-1">
+                  <h3 class="text-2xl font-medium mb-2">{{ post.title }}</h3>
+                  <p class="text-gray-400 text-sm mb-4">{{ post.date }}</p>
+                  <p class="text-gray-300 leading-relaxed">{{ post.content[:180] }}{% if post.content|length > 180 %}...{% endif %}</p>
+                  <a href="{{ url_for('blog_detail', post_id=post.id) }}" class="mt-4 inline-block text-cyan-300">Read more →</a>
+                </div>
+              </div>
             </div>
           {% endfor %}
         </div>

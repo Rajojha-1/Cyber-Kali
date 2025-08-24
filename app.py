@@ -3,6 +3,7 @@ import os
 import sqlite3
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 
 def get_db_connection():
@@ -23,6 +24,11 @@ def init_db():
             )
             """
         )
+        # Ensure image column exists
+        cols = conn.execute('PRAGMA table_info(posts)').fetchall()
+        col_names = {c[1] for c in cols}
+        if 'image' not in col_names:
+            conn.execute('ALTER TABLE posts ADD COLUMN image TEXT')
         conn.commit()
 
 
@@ -32,6 +38,16 @@ app = Flask(
     static_folder='static',
     template_folder='templates',
 )
+
+# Configure uploads
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'uploads')
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+def allowed_file(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'replace-this-in-production')
@@ -72,7 +88,7 @@ init_db()
 def index():
     with get_db_connection() as conn:
         rows = conn.execute(
-            'SELECT id, title, content, date FROM posts ORDER BY id DESC'
+            'SELECT id, title, content, date, image FROM posts ORDER BY id DESC'
         ).fetchall()
     posts = [dict(row) for row in rows]
     return render_template('index.html', posts=posts)
@@ -82,7 +98,7 @@ def index():
 def blog_detail(post_id: int):
     with get_db_connection() as conn:
         row = conn.execute(
-            'SELECT id, title, content, date FROM posts WHERE id = ?', (post_id,)
+            'SELECT id, title, content, date, image FROM posts WHERE id = ?', (post_id,)
         ).fetchone()
     if row is None:
         abort(404)
@@ -110,7 +126,7 @@ def admin_dashboard():
         return redirect_if_needed
 
     with get_db_connection() as conn:
-        rows = conn.execute('SELECT id, title, content, date FROM posts ORDER BY id DESC').fetchall()
+        rows = conn.execute('SELECT id, title, content, date, image FROM posts ORDER BY id DESC').fetchall()
     posts = [dict(row) for row in rows]
 
     return render_template('admin.html', posts=posts, edit_post=None)
@@ -142,10 +158,21 @@ def add_post():
         flash('Title and content are required', 'error')
         return redirect(url_for('admin_dashboard'))
 
+    image_filename = None
+    file = request.files.get('image')
+    if file and file.filename and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        # Make filename unique
+        name, ext = os.path.splitext(filename)
+        unique_name = f"{name}_{int(datetime.now().timestamp())}{ext}"
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+        file.save(save_path)
+        image_filename = unique_name
+
     with get_db_connection() as conn:
         conn.execute(
-            'INSERT INTO posts (title, content, date) VALUES (?, ?, ?)',
-            (title, content, date_str),
+            'INSERT INTO posts (title, content, date, image) VALUES (?, ?, ?, ?)',
+            (title, content, date_str, image_filename),
         )
         conn.commit()
 
@@ -159,7 +186,7 @@ def edit_post(post_id: int):
         return redirect_if_needed
 
     with get_db_connection() as conn:
-        row = conn.execute('SELECT id, title, content, date FROM posts WHERE id = ?', (post_id,)).fetchone()
+        row = conn.execute('SELECT id, title, content, date, image FROM posts WHERE id = ?', (post_id,)).fetchone()
     if row is None:
         abort(404)
     post = dict(row)
@@ -179,10 +206,21 @@ def edit_post(post_id: int):
             flash('Title and content are required', 'error')
             return redirect(url_for('edit_post', post_id=post_id))
 
+        # Handle optional new image
+        image_filename = post.get('image')
+        file = request.files.get('image')
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            name, ext = os.path.splitext(filename)
+            unique_name = f"{name}_{int(datetime.now().timestamp())}{ext}"
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+            file.save(save_path)
+            image_filename = unique_name
+
         with get_db_connection() as conn:
             conn.execute(
-                'UPDATE posts SET title = ?, content = ? WHERE id = ?',
-                (title, content, post_id),
+                'UPDATE posts SET title = ?, content = ?, image = ? WHERE id = ?',
+                (title, content, image_filename, post_id),
             )
             conn.commit()
 
@@ -190,7 +228,7 @@ def edit_post(post_id: int):
 
     # GET: render admin dashboard with edit form populated
     with get_db_connection() as conn:
-        rows = conn.execute('SELECT id, title, content, date FROM posts ORDER BY id DESC').fetchall()
+        rows = conn.execute('SELECT id, title, content, date, image FROM posts ORDER BY id DESC').fetchall()
     posts = [dict(row) for row in rows]
     return render_template('admin.html', posts=posts, edit_post=post)
 
@@ -205,6 +243,16 @@ def delete_post(post_id: int):
         conn.execute('DELETE FROM posts WHERE id = ?', (post_id,))
         conn.commit()
     return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/about')
+def about_page():
+    return render_template('about.html')
+
+
+@app.route('/resources')
+def resources_page():
+    return render_template('resources.html')
 
 
 if __name__ == '__main__':

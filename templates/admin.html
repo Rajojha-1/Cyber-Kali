@@ -18,8 +18,8 @@
         <div class="logo"></div>
         <div class="elements_navbar">
           <a href="/index.html" class="home no-underline">Home</a>
-          <a href="/" class="resources">Resources</a>
-          <a href="/" class="about">About</a>
+          <a href="/resources" class="resources">Resources</a>
+          <a href="/about" class="about">About</a>
         </div>
       </nav>
     </header>
@@ -34,7 +34,7 @@
         <!-- Create / Edit Post Form -->
         <section class="bg-[#0b0b0b] border border-gray-800 rounded-2xl p-6">
           <h2 class="text-xl font-medium mb-4">{% if edit_post %}Edit Post{% else %}Add New Post{% endif %}</h2>
-          <form action="{% if edit_post %}{{ url_for('edit_post', post_id=edit_post.id) }}{% else %}{{ url_for('add_post') }}{% endif %}" method="POST" class="space-y-4">
+          <form action="{% if edit_post %}{{ url_for('edit_post', post_id=edit_post.id) }}{% else %}{{ url_for('add_post') }}{% endif %}" method="POST" class="space-y-4" enctype="multipart/form-data">
             <div>
               <label class="block text-sm text-gray-300 mb-1">Title</label>
               <input name="title" type="text" value="{{ edit_post.title if edit_post else '' }}" required class="w-full bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
@@ -46,6 +46,16 @@
             <div>
               <label class="block text-sm text-gray-300 mb-1">Tags (comma separated)</label>
               <input name="tags" type="text" value="" class="w-full bg-black text-white border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400" />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-300 mb-1">Cover Image</label>
+              <input name="image" type="file" accept="image/*" class="w-full text-gray-300" />
+              {% if edit_post and edit_post.image %}
+                <div class="mt-3">
+                  <div class="text-sm text-gray-400 mb-1">Current image:</div>
+                  <img src="/uploads/{{ edit_post.image }}" alt="cover" class="w-full max-h-64 object-cover rounded-lg border border-gray-800" />
+                </div>
+              {% endif %}
             </div>
             <div class="flex items-center gap-3">
               <button type="submit" class="contact text-white">{% if edit_post %}Update{% else %}Add Post{% endif %}</button>
@@ -64,9 +74,14 @@
               {% for post in posts %}
                 <div class="border border-gray-800 rounded-xl p-4">
                   <div class="flex items-center justify-between">
-                    <div>
-                      <div class="text-lg">{{ post.title }}</div>
-                      <div class="text-gray-400 text-sm">{{ post.date }}</div>
+                    <div class="flex items-start gap-4">
+                      {% if post.image %}
+                        <img src="/uploads/{{ post.image }}" alt="" class="w-16 h-16 object-cover rounded-md border border-gray-800" />
+                      {% endif %}
+                      <div>
+                        <div class="text-lg">{{ post.title }}</div>
+                        <div class="text-gray-400 text-sm">{{ post.date }}</div>
+                      </div>
                     </div>
                     <div class="flex items-center gap-3">
                       <a href="{{ url_for('edit_post', post_id=post.id) }}" class="text-cyan-300">Edit</a>

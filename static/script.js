@@ -62,4 +62,68 @@ tl.from(".members > div", {
   ease: "power2.out"
 });
 
+// About page animations
+if (document.body.classList.contains('about-page')) {
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.utils.toArray('.about-slide').forEach((el, i) => {
+    const fromX = el.classList.contains('from-left') ? -100 : 100;
+    gsap.fromTo(el, { x: fromX, opacity: 0 }, {
+      x: 0,
+      opacity: 1,
+      duration: 0.8,
+      ease: 'power2.out',
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 85%',
+        toggleActions: 'play none none reverse',
+      }
+    });
+  });
+}
+
+// Resources roadmap progression
+if (document.body.classList.contains('resources-page')) {
+  const checkpoints = document.querySelectorAll('.checkpoint');
+  const key = 'void_roadmap_progress';
+  const progress = JSON.parse(localStorage.getItem(key) || '[]');
+
+  function updateLocks() {
+    checkpoints.forEach((cp, idx) => {
+      const id = cp.getAttribute('data-id');
+      const unlocked = idx === 0 || progress.includes(checkpoints[idx - 1].getAttribute('data-id'));
+      cp.classList.toggle('locked', !unlocked);
+      const btn = cp.querySelector('.mark-btn');
+      if (progress.includes(id)) {
+        btn.textContent = 'Completed';
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+      }
+      btn.addEventListener('click', () => {
+        if (cp.classList.contains('locked')) return;
+        if (!progress.includes(id)) {
+          progress.push(id);
+          localStorage.setItem(key, JSON.stringify(progress));
+          updateLocks();
+        }
+      });
+    });
+  }
+  updateLocks();
+}
+
+// Blog reading progress bar
+(function() {
+  const bar = document.getElementById('read-progress');
+  if (!bar) return;
+  function onScroll() {
+    const doc = document.documentElement;
+    const scrollTop = doc.scrollTop || document.body.scrollTop;
+    const scrollHeight = doc.scrollHeight - doc.clientHeight;
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    bar.style.width = progress + '%';
+  }
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
 
