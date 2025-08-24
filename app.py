@@ -374,7 +374,7 @@ def resources_page():
     main_items = sorted(main_items, key=lambda x: x.get('order_index', 0))
 
     step_x = 300
-    margin_x = 120
+    margin_x = 50
     svg_height = 600
 
     y_pct = 58
@@ -390,7 +390,7 @@ def resources_page():
             'y_pct': y_pct,
         })
 
-    total_width = margin_x + (len(main_items) if main_items else 1) * step_x + 180
+    total_width = margin_x + (len(main_items) if main_items else 1) * step_x + 200
 
     # Single path
     def build_path():

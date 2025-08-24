@@ -242,7 +242,7 @@ a:focus {
 .checkpoints{ position: relative; width: 100%; height: 58vh; }
 .checkpoint{
   position: absolute;
-  transform: translate(-50%, -55%);
+  transform: translate(-50%, calc(-50% - 24px));
   pointer-events: auto;
   z-index: 2;
 }
