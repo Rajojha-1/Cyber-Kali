@@ -105,20 +105,6 @@ def fetch_resources(conn):
     rows = conn.execute('SELECT id, title, url, order_index, branch, parent_id FROM resources ORDER BY branch ASC, order_index ASC').fetchall()
     return [dict(r) for r in rows]
 
-def ensure_root_exists(conn) -> int:
-    """Ensure there is a root Welcome resource in main branch at order_index 0. Return its id."""
-    root = conn.execute("SELECT id FROM resources WHERE branch = 'main' AND order_index = 0 ORDER BY id LIMIT 1").fetchone()
-    if root:
-        return root['id']
-    # If main has items, shift them to make space for root at 0
-    conn.execute("UPDATE resources SET order_index = order_index + 1 WHERE branch = 'main'")
-    conn.execute(
-        'INSERT INTO resources (title, url, order_index, branch, parent_id) VALUES (?, ?, ?, ?, ?)',
-        ('Welcome', '#', 0, 'main', None)
-    )
-    conn.commit()
-    root_id = conn.execute("SELECT id FROM resources WHERE branch = 'main' AND order_index = 0 ORDER BY id LIMIT 1").fetchone()['id']
-    return root_id
 
 
 @app.route('/')
@@ -299,7 +285,7 @@ def add_resource():
         return redirect(url_for('admin_dashboard'))
 
     with get_db_connection() as conn:
-        root_id = ensure_root_exists(conn)
+        
         # Default non-main parent to root if not provided
         max_order_row = conn.execute('SELECT COALESCE(MAX(order_index), -1) FROM resources WHERE branch = ?', (branch,)).fetchone()
         max_order = max_order_row[0] if max_order_row is not None else -1
@@ -366,7 +352,7 @@ def about_page():
 @app.route('/resources')
 def resources_page():
     with get_db_connection() as conn:
-        ensure_root_exists(conn)
+        
         resources = fetch_resources(conn)
 
     # Only main branch, linear sequence
