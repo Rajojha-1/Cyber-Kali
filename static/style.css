@@ -246,6 +246,9 @@ a:focus {
   pointer-events: auto;
   z-index: 2;
 }
+.checkpoint.first-checkpoint{
+  transform: translate(0, calc(-50% - 24px));
+}
 .checkpoint .card{
   background: #0b0b0b;
   border: 1px solid #1f2937;
