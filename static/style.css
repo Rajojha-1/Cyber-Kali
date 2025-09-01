@@ -14,7 +14,7 @@ body{
     z-index: 1;
 }
 .kali_svg{
-    z-index: 100;
+    z-index: 4;
     width: 800px;
     height: 800px;
     filter: brightness(0.6) blur(3px) drop-shadow(0 0 10px rgb(25, 172, 195));
@@ -61,17 +61,22 @@ body{
   position: absolute;
   top: 0;
   left: 0;
-  display: flex;
+  /* display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 3;
+  align-items: center; */
+  z-index: 2;
+}
+.kali_svg{
+  position: absolute;
+  left:50vw;
 }
 
 .navbar{
-
+    position:absolute ;
     top: 0;
     left: 0;
     width: 100vw;
+    backdrop-filter: blur(1000px);
     z-index: 1000;
     height: 60px;
     display: flex;
@@ -226,20 +231,28 @@ a:focus {
   padding: 50px;
   overflow: hidden;
 }
+/* Achievements */
 .members > div {
   margin: 20px 0;
   font-size: 20px;
 }
+.members > *:hover {
+  /* border: solid 5px aqua; */
+  box-shadow: 0 0 15px aqua, 0 0 30px aqua;
+  transition:all ease-out 0.2s;
+}
+
+
 .roadmap-container{
   position: relative;
   width: 100%;
   background: transparent;
-  border-radius: 16px;
+  border-radius: 0px;
   overflow: hidden;
   min-height: 58vh;
 }
-.roadmap-svg{ width: 100%; height: 58vh; display: block; }
-.checkpoints{ position: relative; width: 100%; height: 58vh; }
+.roadmap-svg{  width: 100%; height: 58vh; display: block;  }
+.checkpoints{ position: relative; width: 100%; height: 20vh; }
 .checkpoint{
   position: absolute;
   transform: translate(0, calc(-50% - 24px));
@@ -318,3 +331,92 @@ a:focus {
   z-index: 3;
 }
 .roadmap-svg path{ transition: stroke 0.4s ease; }
+
+.kali_distro_overview {
+  position: relative;
+  border: 10px solid rgba(81, 71, 71, 0.5); /* base border */
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  overflow: visible; /* allow glow outside */
+}
+
+.kali_distro_overview::before {
+  content: '';
+  position: absolute;
+  top: -40px; /* allow glow outside */
+  left: -40px;
+  width: 200px;  /* size of glow area */
+  height: 200px;
+  pointer-events: none;
+  border-radius: 50%; /* circular glow shape */
+
+  /* Glow starting from top-left corner, fading along top and left edges */
+  background: radial-gradient(
+    circle at top left, 
+    rgba(255, 0, 0, 1) 0%,      /* center bright red */
+    rgba(255, 0, 0, 0.4) 40%,   /* fade along edges */
+    rgba(255, 0, 0, 0) 100%     /* fully transparent at middle distance */
+  );
+
+  filter: blur(30px); /* soft outer glow */
+  z-index: -1; /* behind everything */
+}
+
+/* Extra Light / Thin */
+.about-club{
+  width:40vw;
+  top: 30%;
+  left:5%;
+  position: absolute;
+}
+.about_desc{
+  top: 20%;
+  left:5%;
+  position: absolute;
+}
+/* Normal 400 */
+@font-face {
+  font-family: 'CustomClubFont';
+  src: url('/assets/fonts/e4af272ccee01ff0-s.p.woff2') format('woff2'); /* Inter Normal */
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Semi-Bold 600 */
+@font-face {
+  font-family: 'CustomClubFont';
+  src: url('/assets/fonts/1b0b3615811be75b-s.p.woff2') format('woff2'); /* Semi-Bold */
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* Bold 700 */
+@font-face {
+  font-family: 'CustomClubFont';
+  src: url('/assets/fonts/14d7ce3e41dcbb66-s.p.woff2') format('woff2'); /* Bold/Unknown 700 */
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+.about-club-h1 {
+  font-family: 'CustomClubFont', sans-serif;
+  font-weight: 700;
+  font-size: 8ch;       /* keep using ch as requested */
+  
+  /* Reduce space between letters slightly */
+  letter-spacing: -0.02ch;  /* negative ch works better at large font sizes */
+  
+  /* Allow wrapping into multiple lines */
+  white-space: normal;
+  word-wrap: break-word;
+
+font-feature-settings: "kern" 0; /* disables kerning */
+  text-rendering: optimizeLegibility;
+
+}
+
+
+
+
+

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/style.css" />
 </head>
+
 <body class="bg-black text-white resources-page">
   <header>
     <nav class="navbar">
@@ -27,44 +29,171 @@
   <main class="max-w-6xl mx-auto px-6 py-10">
     <h1 class="text-3xl md:text-4xl font-semibold mb-6">Roadmap</h1>
     <div class="mb-6 flex items-center gap-4 text-sm text-gray-300">
-      <span class="inline-flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full bg-cyan-400"></span>Next</span>
-      <span class="inline-flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full bg-slate-500"></span>Locked</span>
-      <span class="inline-flex items-center gap-2"><span class="inline-block w-3 h-3 rounded-full bg-emerald-400"></span>Completed</span>
+      <span class="inline-flex items-center gap-2"><span
+          class="inline-block w-3 h-3 rounded-full bg-cyan-400"></span>Next</span>
+      <span class="inline-flex items-center gap-2"><span
+          class="inline-block w-3 h-3 rounded-full bg-slate-500"></span>Locked</span>
+      <span class="inline-flex items-center gap-2"><span
+          class="inline-block w-3 h-3 rounded-full bg-emerald-400"></span>Completed</span>
     </div>
 
-    <div class="roadmap-container" style="position: relative; display: flex;">
-      <div id="road-scroll" style="overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; -webkit-overflow-scrolling: touch;">
-        <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}" preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}" style="min-width: {{ canvas_width }}px;">
+    <div class="roadmap-container" style="position: relative; display: flex">
+      <div id="road-scroll" style="
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+          ">
+        <svg id="road-svg" class="roadmap-svg" viewBox="0 0 {{ canvas_width }} {{ svg_height }}"
+          preserveAspectRatio="xMidYMid meet" data-canvas-width="{{ canvas_width }}" data-svg-height="{{ svg_height }}"
+          style="display:block; margin:0; padding:0; min-width:{{ canvas_width }}px; width:100%;">
           <defs>
             <linearGradient id="pathGlow" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="{{ canvas_width }}" y2="0">
-              <stop offset="0%" stop-color="#22d3ee"/>
-              <stop id="glow-cut" offset="0%" stop-color="#22d3ee"/>
-              <stop id="glow-stop" offset="0%" stop-color="#334155"/>
-              <stop offset="100%" stop-color="#334155"/>
+              <stop offset="0%" stop-color="#22d3ee" />
+              <stop id="glow-cut" offset="0%" stop-color="#22d3ee" />
+              <stop id="glow-stop" offset="0%" stop-color="#334155" />
+              <stop offset="100%" stop-color="#334155" />
             </linearGradient>
           </defs>
+
           {% for bp in branch_paths %}
-            <path d="{{ bp.d }}" stroke="url(#pathGlow)" stroke-width="12" fill="none" stroke-linecap="round" />
+          <path d="{{ bp.d }}" stroke="url(#pathGlow)" stroke-width="12" fill="none" stroke-linecap="round" />
           {% endfor %}
         </svg>
         <div class="checkpoints" style="min-width: {{ canvas_width }}px;">
           {% for node in layout %}
-            <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}" data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}" data-ypct="{{ node.y_pct }}">
-              <div class="card">
-                <h3>{{ node.title }}</h3>
-                <a href="{{ node.url }}" target="_blank" rel="noreferrer" class="link">Open resource</a>
-                <button class="mark-btn" type="button">Mark complete</button>
-              </div>
+          <div class="checkpoint{% if not loop.first %} locked{% endif %}" data-id="cp-{{ node.id }}"
+            data-order="{{ node.order_index }}" data-xpct="{{ (node.x / canvas_width) * 100 }}"
+            data-ypct="{{ node.y_pct }}">
+            <div class="card">
+              <h3>{{ node.title }}</h3>
+              <a href="{{ node.url }}" target="_blank" rel="noreferrer" class="link">Open resource</a>
+              <button class="mark-btn" type="button">Mark complete</button>
             </div>
+          </div>
           {% endfor %}
         </div>
       </div>
-      <div class="fog-mask" style="--fog-reveal: 94%;"></div>
+      <div class="fog-mask" style="--fog-reveal: 94%"></div>
     </div>
 
-    <p class="text-gray-400 mt-5 text-sm">Progress is saved locally in your browser.</p>
+    <p class="text-gray-400 mt-5 text-sm">
+      Progress is saved locally in your browser.
+    </p>
   </main>
+  <div class="bg-gray-900 flex flex-col position-relative justify-center items-center">
+    <h2 class="text-white font-poppins text-1xl md:text-4xl font-semibold m-10">
+      Welocome to your Domain
+    </h2>
+    <div class="other_domain flex flex-col justify-start w-full">
+      <div class="Hardware m-10">
+        <h2 class="text-white font-poppins text-1xl md:text-4xl font-semibold mb-5">
+          Hardware Analysis
+        </h2>
+        <div class="flex items-start gap-5">
+          <img src="/assets/Hardware_analysis.png" class="w-96 rounded-xl" alt="" />
+          <p class="text-gray-400 text-xl max-w-[600px]">
+            Hardware analysis is the process of examining and evaluating the
+            physical components of a computer system or electronic device to
+            understand its design, functionality, and performance. This
+            analysis can involve various techniques and tools to gather
+            information about the hardware architecture, specifications, and
+            capabilities. For detailed video lecture
+            <a href="https://www.youtube.com/watch?v=qA0YcYMRWyI" target="_blank" class="text-blue-400 underline ml-1">
+              Click Here
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="Forensics m-10">
+        <h2 class="text-white font-poppins text-1xl md:text-4xl font-semibold mb-5">
+          Forencics
+        </h2>
+        <div class="flex items-start gap-5">
+          <img src="/assets/Forencis.png" class="w-96 rounded-xl" alt="" />
+          <p class="text-gray-400 text-xl max-w-[600px]">
+            Forensics is the application of scientific methods and techniques
+            to investigate crimes, analyze digital or physical evidence, and
+            uncover facts. In digital forensics, investigators examine
+            computers, networks, and electronic devices to recover, preserve,
+            and analyze data for legal or security purposes, helping solve
+            cybercrimes and ensure accountability.
+            <a href="https://youtu.be/vD7uJ8aP0zA?si=22hPBWAjW3qnEDSN" target="_blank"
+              class="text-blue-400 underline ml-1">
+              Click Here
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="WAPT m-10">
+        <h2 class="text-white font-poppins text-1xl md:text-4xl font-semibold mb-5">
+          WAPT
+        </h2>
+        <div class="flex items-start gap-5">
+          <img src="/assets/WAPT.png" class="w-96 rounded-xl" alt="" />
+          <p class="text-gray-400 text-xl max-w-[600px]">
+            WAPT (Web Application Penetration Testing) is the practice of
+            identifying and exploiting security vulnerabilities in web
+            applications. It involves assessing authentication, authorization,
+            input validation, session management, and data handling to find
+            weaknesses. The goal is to enhance security, prevent attacks, and
+            ensure safe, reliable web application functionality.. For detailed
+            video lecture
+            <a href="https://youtu.be/DgH6z6xYgNo?si=TpPvGJH3kQnfD7Yl" target="_blank"
+              class="text-blue-400 underline ml-1">
+              Click Here
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="CrypNet m-10">
+        <h2 class="text-white font-poppins text-1xl md:text-4xl font-semibold mb-5">
+          Crypto & Network
+        </h2>
+        <div class="flex items-start gap-5">
+          <img src="/assets/Crypto.png" class="w-96 rounded-xl" alt="" />
+          <p class="text-gray-400 text-xl max-w-[600px]">
+            Cryptography is the science of securing information using mathematical algorithms, ensuring data
+            confidentiality, integrity, authentication, and non-repudiation. It is used to encrypt messages, secure
+            communications, and protect sensitive data from unauthorized access.
 
+            Networking is the practice of connecting computers and devices to share resources, communicate, and transfer
+            data efficiently. It involves protocols, routers, switches, and network topologies to maintain secure and
+            reliable data flow.For detailed
+            video lecture
+            <a href="https://youtube.com/playlist?list=PLBlnK6fEyqRgJU3EsOYDTW7m6SUmW6kII&si=Ejf1KpKNqjU4nJdh" "
+                target=" _blank" class="text-blue-400 underline ml-1">
+              Click Here
+            </a>
+          </p>
+        </div>
+      </div>
+      <div class="Devsecops m-10">
+        <h2 class="text-white font-poppins text-1xl md:text-4xl font-semibold mb-5">
+          Devsecops
+        </h2>
+        <div class="flex items-start gap-5">
+          <img src="/assets/DevSecops.png" class="w-96 rounded-xl" alt="" />
+          <p class="text-gray-400 text-xl max-w-[600px]">
+            **DevSecOps** (Development, Security, and Operations) is an approach that integrates security practices
+            directly into the software development lifecycle. It ensures that security is automated and continuous, from
+            coding to deployment, enabling faster, safer releases by addressing vulnerabilities early and maintaining
+            compliance without slowing down development.
+            For detailed
+            video lecture
+            <a href="https://youtu.be/JfiWi8RjN-8" 
+                target=" _blank" class="text-blue-400 underline ml-1">
+              Click Here
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+<div class="bottom_bar"></div>
   <script src="/script.js"></script>
 </body>
+
 </html>
